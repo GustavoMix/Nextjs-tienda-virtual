@@ -29,3 +29,9 @@ export async function getProducts() {
 }
 ```
 Las imágenes pueden ir en Supabase Storage (usa la URL pública en `image`).
+
+## Publicar en GitHub Pages
+El workflow `.github/workflows/pages.yml` publica solo en cada push.
+1. En GitHub: **Settings → Pages → Source: GitHub Actions**.
+2. (Opcional) **Settings → Secrets and variables → Actions → Variables**: crea `WHATSAPP_NUMBER` con tu número.
+3. Tu tienda quedará en `https://TU-USUARIO.github.io/nextjs-tienda-virtual/`.
