@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { Product } from "@/lib/products";
-import { contactWhatsAppUrl, money, productWhatsAppUrl } from "@/lib/whatsapp";
+import { STATUSES, statusOf, type Product, type Status } from "@/lib/products";
+import { contactWhatsAppUrl, money, productWhatsAppUrl, reservedWhatsAppUrl, similarWhatsAppUrl } from "@/lib/whatsapp";
 import { STORE_NAME, STORE_TAGLINE } from "@/lib/config";
 import ThemeToggle from "./ThemeToggle";
 import { Photo, WaIcon } from "./ui";
@@ -11,12 +11,15 @@ import { Photo, WaIcon } from "./ui";
 export default function Store({ products }: { products: Product[] }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("Todos");
+  const [tab, setTab] = useState<Status>("disponible");
+  const count = (st: Status) => products.filter((p) => statusOf(p) === st).length;
   const cats = useMemo(
     () => ["Todos", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))],
     [products]
   );
   const shown = products.filter(
     (p) =>
+      statusOf(p) === tab &&
       (cat === "Todos" || p.category === cat) &&
       (p.name + " " + p.description).toLowerCase().includes(q.trim().toLowerCase())
   );
@@ -52,6 +55,39 @@ export default function Store({ products }: { products: Product[] }) {
       </header>
 
       <main className="mx-auto max-w-7xl px-2 pb-6 pt-2.5 sm:px-4 sm:pt-4">
+        {/* Pestañas: Disponibles / Reservados / Vendidos */}
+        <div role="tablist" className="mb-2.5 grid grid-cols-3 gap-1 rounded-2xl bg-stone-200/70 p-1 dark:bg-stone-900 md:mx-auto md:max-w-md">
+          {STATUSES.map((st) => {
+            const active = tab === st.id;
+            return (
+              <button
+                key={st.id}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(st.id)}
+                className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-[13px] font-bold transition ${
+                  active ? "bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-white" : "text-stone-500 dark:text-stone-400"
+                }`}
+              >
+                {st.plural}
+                <span
+                  className={`min-w-5 rounded-full px-1.5 text-[11px] tabular-nums ${
+                    active
+                      ? st.id === "disponible"
+                        ? "bg-[#25D366] text-stone-950"
+                        : st.id === "reservado"
+                          ? "bg-amber-400 text-stone-950"
+                          : "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                      : "bg-stone-300/80 dark:bg-stone-800"
+                  }`}
+                >
+                  {count(st.id)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Buscador (celular) y categorías: se van al hacer scroll para dejar espacio a los productos */}
         <input
           type="search"
@@ -82,14 +118,24 @@ export default function Store({ products }: { products: Product[] }) {
         </div>
 
         {shown.length === 0 && (
-          <p className="py-16 text-center text-stone-500">No encontramos productos con esa búsqueda.</p>
+          <p className="py-16 text-center text-stone-500">
+            {q || cat !== "Todos"
+              ? "No encontramos productos con esa búsqueda."
+              : tab === "reservado"
+                ? "No hay productos reservados ahora."
+                : tab === "vendido"
+                  ? "Todavía no hay vendidos."
+                  : "No hay productos disponibles ahora. ¡Vuelve pronto!"}
+          </p>
         )}
 
         {/* Productos: 2 columnas en celular, hasta 5 en pantallas grandes */}
         <div className="mt-2.5 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {shown.map((p) => {
-            const soldOut = p.available === false;
-            const off = !soldOut && p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+            const st = statusOf(p);
+            const soldOut = st === "vendido";
+            const reserved = st === "reservado";
+            const off = st === "disponible" && p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
             return (
               <article
                 key={p.id}
@@ -99,11 +145,13 @@ export default function Store({ products }: { products: Product[] }) {
                   <Photo
                     url={p.images[0]}
                     alt={p.name}
-                    className={`aspect-[4/5] w-full transition duration-300 group-hover:scale-[1.03] ${soldOut ? "opacity-50 grayscale" : ""}`}
+                    className={`aspect-[4/5] w-full transition duration-300 group-hover:scale-[1.03] ${soldOut ? "opacity-60 grayscale" : reserved ? "opacity-80" : ""}`}
                   />
                   <div className="absolute left-2 top-2 flex flex-wrap gap-1">
                     {soldOut ? (
-                      <span className="rounded-full bg-stone-950/85 px-2 py-0.5 text-[11px] font-bold text-white">Vendido</span>
+                      <span className="rounded-full bg-stone-950/85 px-2 py-0.5 text-[11px] font-bold text-white">✓ Vendido</span>
+                    ) : reserved ? (
+                      <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] font-bold text-stone-950">⏳ Reservado</span>
                     ) : (
                       <>
                         {off > 0 && <span className="rounded-md bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">-{off}%</span>}
@@ -135,18 +183,21 @@ export default function Store({ products }: { products: Product[] }) {
                       <p className="text-[17px] font-extrabold tabular-nums">{money(p.price)}</p>
                     </div>
                     <a
-                      href={soldOut ? undefined : productWhatsAppUrl(p)}
+                      href={soldOut ? similarWhatsAppUrl(p) : reserved ? reservedWhatsAppUrl(p) : productWhatsAppUrl(p)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-disabled={soldOut}
-                      aria-label={`Pedir ${p.name} por WhatsApp`}
+                      aria-label={
+                        soldOut ? `Preguntar por una parecida a ${p.name}` : reserved ? `Avisarme si se libera ${p.name}` : `Pedir ${p.name} por WhatsApp`
+                      }
                       className={`flex h-9 shrink-0 items-center gap-1 rounded-full px-3 text-[13px] font-bold transition active:scale-95 ${
                         soldOut
-                          ? "pointer-events-none bg-stone-200 text-stone-400 dark:bg-stone-800"
-                          : "bg-[#25D366] text-stone-950 hover:brightness-95"
+                          ? "bg-stone-200 text-stone-700 hover:bg-stone-300 dark:bg-stone-800 dark:text-stone-200"
+                          : reserved
+                            ? "bg-amber-400 text-stone-950 hover:brightness-95"
+                            : "bg-[#25D366] text-stone-950 hover:brightness-95"
                       }`}
                     >
-                      {soldOut ? "Vendido" : <><WaIcon className="h-4 w-4" /> Pedir</>}
+                      <WaIcon className="h-4 w-4" /> {soldOut ? "Similar" : reserved ? "Avisarme" : "Pedir"}
                     </a>
                   </div>
                 </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { Product } from "@/lib/products";
+import { STATUSES, statusOf, type Product, type Status } from "@/lib/products";
 import { getUser, signIn, signOut, type AdminUser } from "@/lib/auth";
 import { money } from "@/lib/whatsapp";
 import { STORE_NAME } from "@/lib/config";
@@ -68,14 +68,14 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
     setProducts((list) => (list.some((x) => x.id === p.id) ? list.map((x) => (x.id === p.id ? p : x)) : [p, ...list]));
     setEditing(null);
   };
-  const toggle = (id: string) =>
-    setProducts((list) => list.map((x) => (x.id === id ? { ...x, available: x.available === false } : x)));
+  const setStatus = (id: string, status: Status) =>
+    setProducts((list) => list.map((x) => (x.id === id ? { ...x, status } : x)));
   const remove = (id: string) => {
     setProducts((list) => list.filter((x) => x.id !== id));
     setConfirmId(null);
   };
 
-  const availableCount = products.filter((p) => p.available !== false).length;
+  const count = (st: Status) => products.filter((p) => statusOf(p) === st).length;
 
   return (
     <div className="min-h-screen bg-stone-50 pb-16 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
@@ -109,11 +109,7 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
         </p>
 
         <div className="grid grid-cols-3 gap-2.5">
-          {[
-            ["Productos", products.length],
-            ["Disponibles", availableCount],
-            ["Vendidos", products.length - availableCount],
-          ].map(([label, n]) => (
+          {STATUSES.map((st) => [st.plural, count(st.id)] as const).map(([label, n]) => (
             <div key={label} className="rounded-2xl bg-white p-3 ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
               <p className="text-2xl font-extrabold tabular-nums">{n}</p>
               <p className="text-xs text-stone-500 dark:text-stone-400">{label}</p>
@@ -130,9 +126,9 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
 
         <ul className="divide-y divide-stone-200 overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200 dark:divide-stone-800 dark:bg-stone-900 dark:ring-stone-800">
           {products.map((p) => {
-            const on = p.available !== false;
+            const st = statusOf(p);
             return (
-              <li key={p.id} className="flex items-center gap-3 p-3">
+              <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
                 <Photo url={p.images[0]} alt={p.name} className="h-14 w-14 shrink-0 rounded-xl" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{p.name}</p>
@@ -140,14 +136,6 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
                     {money(p.price)}
                     {p.condition && ` · ${p.condition}`}
                   </p>
-                  <button
-                    onClick={() => toggle(p.id)}
-                    className={`mt-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                      on ? "bg-[#25D366]/15 text-emerald-600 dark:text-[#25D366]" : "bg-stone-200 text-stone-500 dark:bg-stone-800"
-                    }`}
-                  >
-                    {on ? "● Disponible" : "○ Vendido"}
-                  </button>
                 </div>
                 {confirmId === p.id ? (
                   <div className="flex shrink-0 items-center gap-1.5">
@@ -160,6 +148,25 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
                     <button onClick={() => setConfirmId(p.id)} aria-label={`Eliminar ${p.name}`} className="grid h-9 w-9 place-items-center rounded-lg bg-stone-100 dark:bg-stone-800">🗑️</button>
                   </div>
                 )}
+                  <div className="flex basis-full gap-1.5 pl-[68px]">
+                  {STATUSES.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setStatus(p.id, o.id)}
+                      className={`rounded-full px-2.5 py-1 text-[12px] font-bold transition ${
+                        st === o.id
+                          ? o.id === "disponible"
+                            ? "bg-[#25D366] text-stone-950"
+                            : o.id === "reservado"
+                              ? "bg-amber-400 text-stone-950"
+                              : "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                          : "bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500"
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
               </li>
             );
           })}

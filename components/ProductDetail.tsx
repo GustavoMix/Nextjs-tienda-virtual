@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import type { Product } from "@/lib/products";
-import { money, productWhatsAppUrl } from "@/lib/whatsapp";
+import { statusOf, type Product } from "@/lib/products";
+import { money, productWhatsAppUrl, reservedWhatsAppUrl, similarWhatsAppUrl } from "@/lib/whatsapp";
 import { SITE_URL, STORE_INFO, STORE_NAME } from "@/lib/config";
 import ThemeToggle from "./ThemeToggle";
 import { WaIcon, src } from "./ui";
@@ -119,7 +119,9 @@ export default function ProductDetail({ p }: { p: Product }) {
   const [toast, setToast] = useState("");
   const sizesRef = useRef<HTMLDivElement>(null);
 
-  const soldOut = p.available === false;
+  const status = statusOf(p);
+  const soldOut = status === "vendido";
+  const reserved = status === "reservado";
   const needsSize = !!p.sizes?.length && !size;
   const link = SITE_URL ? `${SITE_URL}/producto/${p.id}/` : undefined;
   const waUrl = productWhatsAppUrl(p, { size, color, link });
@@ -145,9 +147,23 @@ export default function ProductDetail({ p }: { p: Product }) {
   };
 
   const cta = soldOut ? (
-    <span className="flex flex-1 items-center justify-center rounded-2xl bg-stone-200 py-3.5 font-bold text-stone-500 dark:bg-stone-800">
-      Ya se vendió
-    </span>
+    <a
+      href={similarWhatsAppUrl(p)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-stone-200 py-3.5 font-bold text-stone-800 transition hover:bg-stone-300 dark:bg-stone-800 dark:text-stone-100"
+    >
+      <WaIcon /> ¿Tienes otra parecida?
+    </a>
+  ) : reserved ? (
+    <a
+      href={reservedWhatsAppUrl(p, link)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-amber-400 py-3.5 font-bold text-stone-950 transition hover:brightness-95"
+    >
+      <WaIcon /> Avisarme si se libera
+    </a>
   ) : needsSize ? (
     <button onClick={askSize} className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-3.5 font-bold text-stone-950 opacity-90">
       <WaIcon /> Elige tu talla
@@ -188,7 +204,7 @@ export default function ProductDetail({ p }: { p: Product }) {
       </header>
 
       <main className="mx-auto max-w-6xl sm:grid sm:grid-cols-2 sm:items-start sm:gap-8 sm:px-4 sm:pb-10 sm:pt-6 lg:grid-cols-[3fr_2fr]">
-        <div className="sm:sticky sm:top-20"><Gallery images={p.images} alt={p.name} /></div>
+        <div className="sm:sticky sm:top-20"><div className={soldOut ? "grayscale" : ""}><Gallery images={p.images} alt={p.name} /></div></div>
 
         <div className="space-y-5 px-3 pt-4 sm:px-0 sm:pt-0">
           <div className="space-y-1.5">
@@ -198,10 +214,14 @@ export default function ProductDetail({ p }: { p: Product }) {
               {p.category && <span>{p.category}</span>}
               <span
                 className={`ml-auto rounded-full px-2 py-0.5 normal-case tracking-normal ${
-                  soldOut ? "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300" : "bg-[#25D366]/15 text-emerald-600 dark:text-[#25D366]"
+                  soldOut
+                    ? "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300"
+                    : reserved
+                      ? "bg-amber-400/20 text-amber-600 dark:text-amber-400"
+                      : "bg-[#25D366]/15 text-emerald-600 dark:text-[#25D366]"
                 }`}
               >
-                {soldOut ? "Vendido" : "● Disponible"}
+                {soldOut ? "✓ Vendido" : reserved ? "⏳ Reservado" : "● Disponible"}
               </span>
             </div>
             <h1 className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{p.name}</h1>
@@ -216,8 +236,18 @@ export default function ProductDetail({ p }: { p: Product }) {
             </div>
           </div>
 
-          {p.stock === 1 && !soldOut && (
+          {status === "disponible" && p.stock === 1 && (
             <p className="-mt-2 text-sm font-semibold text-amber-600 dark:text-amber-400">⚡ Única unidad</p>
+          )}
+          {reserved && (
+            <p className="rounded-2xl bg-amber-400/15 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+              ⏳ Alguien la apartó. Si no la recoge, vuelve a estar disponible. Pide que te avisemos.
+            </p>
+          )}
+          {soldOut && (
+            <p className="rounded-2xl bg-stone-200/70 px-4 py-3 text-sm text-stone-600 dark:bg-stone-900 dark:text-stone-300">
+              ✓ Esta ya se vendió. Escríbenos y te mostramos otras parecidas.
+            </p>
           )}
 
           {(p.condition || p.measure) && (

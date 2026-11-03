@@ -1,6 +1,14 @@
 export type Condition = "Nuevo" | "Como nuevo" | "Buen estado" | "Usado";
 export const CONDITIONS: Condition[] = ["Nuevo", "Como nuevo", "Buen estado", "Usado"];
 
+export type Status = "disponible" | "reservado" | "vendido";
+export const STATUSES: { id: Status; label: string; plural: string }[] = [
+  { id: "disponible", label: "Disponible", plural: "Disponibles" },
+  { id: "reservado", label: "Reservado", plural: "Reservados" },
+  { id: "vendido", label: "Vendido", plural: "Vendidos" },
+];
+export const statusOf = (p: Product): Status => p.status ?? "disponible";
+
 export type Product = {
   id: string; // también es el link: /producto/<id>  (sin espacios ni tildes)
   name: string;
@@ -15,7 +23,7 @@ export type Product = {
   stock?: number; // 1 = "Única unidad"
   sizes?: string[]; // opcional: tallas para elegir (productos nuevos con varias tallas)
   colors?: string[]; // opcional: colores para elegir
-  available?: boolean; // false = "Vendido"
+  status?: Status; // "disponible" (por defecto), "reservado" o "vendido"
 };
 
 // 👇 Productos de DEMOSTRACIÓN (dibujos de ejemplo en public/productos). Reemplázalos por los tuyos.
@@ -76,6 +84,7 @@ const PRODUCTS: Product[] = [
     condition: "Usado",
     measure: "1½ plazas · 150×200 cm",
     stock: 1,
+    status: "reservado",
     description: "Para los amantes del fútbol. Tiene uso, pero sin roturas. Precio de oportunidad.",
     images: img("futbol"),
   },
@@ -87,6 +96,7 @@ const PRODUCTS: Product[] = [
     condition: "Nuevo",
     measure: "2 plazas · 180×220 cm",
     stock: 1,
+    status: "vendido",
     description: "Cuadros rojo y negro, estilo cabaña. Nueva, nunca usada, con etiqueta.",
     images: img("escocesa"),
   },

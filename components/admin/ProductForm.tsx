@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CONDITIONS, type Condition, type Product } from "@/lib/products";
+import { CONDITIONS, STATUSES, statusOf, type Condition, type Product, type Status } from "@/lib/products";
 import { src } from "../ui";
 
 const field =
@@ -27,7 +27,7 @@ export default function ProductForm({
   const [condition, setCondition] = useState<Condition>(product?.condition ?? "Como nuevo");
   const [measure, setMeasure] = useState(product?.measure ?? "");
   const [images, setImages] = useState<string[]>(product?.images ?? []);
-  const [available, setAvailable] = useState(product?.available !== false);
+  const [status, setStatus] = useState<Status>(product ? statusOf(product) : "disponible");
   const [error, setError] = useState("");
 
   // Prototipo: las fotos se muestran solo en este navegador. Con Supabase se subirán a Storage.
@@ -52,7 +52,7 @@ export default function ProductForm({
       condition,
       measure: measure.trim() || undefined,
       stock: product?.stock ?? 1,
-      available,
+      status,
     });
   };
 
@@ -120,10 +120,23 @@ export default function ProductForm({
         </div>
         <input id="measure" placeholder="Medida (ej. 2 plazas · 180×220 cm)" value={measure} onChange={(e) => setMeasure(e.target.value)} className={field} />
 
-        <label className="flex items-center justify-between rounded-xl bg-stone-100 px-3.5 py-3 dark:bg-stone-800">
-          <span className="font-semibold">Disponible (desmarca cuando se venda)</span>
-          <input id="available" type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-5 w-5 accent-[#25D366]" />
-        </label>
+        <div>
+          <p className="mb-1.5 text-sm font-semibold">Situación</p>
+          <div className="grid grid-cols-3 gap-2">
+            {STATUSES.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => setStatus(o.id)}
+                className={`rounded-xl py-2.5 text-sm font-semibold ring-1 ${
+                  status === o.id ? "bg-[#25D366] text-stone-950 ring-[#25D366]" : "ring-stone-200 dark:ring-stone-700"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
         <button className="w-full rounded-xl bg-[#25D366] py-3.5 font-bold text-stone-950 hover:brightness-95">Guardar</button>

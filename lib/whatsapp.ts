@@ -34,6 +34,16 @@ export const productWhatsAppUrl = (p: Product, { qty = 1, size, color, link }: C
       .join("\n")
   );
 
+// Producto reservado: pedir que le avisen si se libera
+export const reservedWhatsAppUrl = (p: Product, link?: string) =>
+  wa(
+    `¡Hola! 👋 Vi que la ${p.name} está reservada.${link ? `\n${link}` : ""}\n\nSi se libera, ¿me avisas? Me interesa.`
+  );
+
+// Producto vendido: preguntar por uno parecido
+export const similarWhatsAppUrl = (p: Product) =>
+  wa(`¡Hola! 👋 Vi que la ${p.name} ya se vendió. ¿Tienes otra parecida?`);
+
 // Enlace de contacto general
 export const contactWhatsAppUrl = () =>
   wa("¡Hola! 👋 Vi tu tienda y quiero hacer una consulta.");

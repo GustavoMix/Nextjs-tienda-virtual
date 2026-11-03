@@ -25,7 +25,7 @@ Ahora hay 6 mantas de demostración con dibujos de ejemplo (`public/productos/ma
   stock: 1,                               // 1 = muestra "Única unidad"
   description: "Texto corto del producto.",
   images: ["/productos/stitch-1.jpg", "/productos/stitch-2.jpg", "/productos/stitch-3.jpg"],
-  available: true,                        // false = "Vendido"
+  status: "disponible",                   // "disponible" | "reservado" | "vendido"
 }
 ```
 3. Nombre, número de WhatsApp, moneda y datos de entrega/pago: `lib/config.ts`.
