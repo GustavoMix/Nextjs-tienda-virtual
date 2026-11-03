@@ -13,7 +13,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label="Cambiar modo claro / oscuro"
       title="Modo claro / oscuro"
-      className="grid h-10 w-10 place-items-center rounded-full border border-stone-200 bg-white text-lg transition hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700"
+      className="grid h-10 w-10 place-items-center rounded-full bg-stone-100 text-lg transition hover:bg-stone-200 dark:bg-stone-900 dark:hover:bg-stone-800"
     >
       <span className="dark:hidden">🌙</span>
       <span className="hidden dark:inline">☀️</span>

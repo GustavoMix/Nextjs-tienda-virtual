@@ -58,110 +58,111 @@ export default function Store({ products }: { products: Product[] }) {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
-      {/* Encabezado */}
-      <header className="sticky top-0 z-10 border-b border-stone-200/80 bg-white/85 backdrop-blur dark:border-stone-800 dark:bg-stone-900/85">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
-            <p className="truncate text-lg font-extrabold tracking-tight">{STORE_NAME}</p>
-            <p className="truncate text-xs text-stone-500 dark:text-stone-400">{STORE_TAGLINE}</p>
+      {/* Encabezado fijo: nombre, tema, contacto, buscador y categorías */}
+      <header className="sticky top-0 z-10 border-b border-stone-200/80 bg-white/90 backdrop-blur dark:border-stone-800/80 dark:bg-stone-950/90">
+        <div className="mx-auto max-w-5xl px-3 pb-2.5 pt-3 sm:px-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-lg font-extrabold leading-tight tracking-tight">{STORE_NAME}</p>
+              <p className="truncate text-[11px] text-stone-500 dark:text-stone-400">{STORE_TAGLINE}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <ThemeToggle />
+              <a
+                href={contactWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-10 items-center gap-1.5 rounded-full bg-[#25D366] px-3.5 text-sm font-bold text-stone-950 transition hover:brightness-95"
+              >
+                <WaIcon className="h-4 w-4" /> Escríbenos
+              </a>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <a
-              href={contactWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-full bg-[#25D366] px-4 py-2.5 text-sm font-bold text-stone-950 transition hover:brightness-95"
-            >
-              <WaIcon className="h-4 w-4" /> Escríbenos
-            </a>
-          </div>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="🔍  Buscar producto…"
+            aria-label="Buscar producto"
+            className="mt-2.5 w-full rounded-xl border border-stone-200 bg-stone-100 px-3.5 py-2.5 text-[15px] outline-none ring-[#25D366] focus:ring-2 dark:border-stone-800 dark:bg-stone-900"
+          />
+          {cats.length > 2 && (
+            <div className="-mx-3 mt-2 flex gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] sm:-mx-4 sm:px-4">
+              {cats.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCat(c)}
+                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition ${
+                    c === cat
+                      ? "bg-[#25D366] text-stone-950"
+                      : "bg-stone-100 text-stone-600 dark:bg-stone-900 dark:text-stone-300"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 pb-24 pt-5">
-        {/* Título + buscador + categorías */}
-        <div className="mb-4 flex items-end justify-between gap-3">
-          <h1 className="text-2xl font-extrabold tracking-tight">Productos disponibles</h1>
-          <span className="shrink-0 rounded-full bg-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-600 dark:bg-stone-800 dark:text-stone-300">
-            {shown.length} {shown.length === 1 ? "producto" : "productos"}
-          </span>
-        </div>
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="🔍  Buscar producto…"
-          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 outline-none ring-[#25D366] focus:ring-2 dark:border-stone-800 dark:bg-stone-900"
-        />
-        {cats.length > 2 && (
-          <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
-            {cats.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCat(c)}
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  c === cat
-                    ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
-                    : "bg-white text-stone-600 ring-1 ring-stone-200 dark:bg-stone-900 dark:text-stone-300 dark:ring-stone-800"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        )}
+      <main className="mx-auto max-w-5xl px-3 pb-24 pt-3 sm:px-4 sm:pt-5">
+        <p className="mb-2.5 flex items-center gap-1.5 text-[13px] font-semibold text-stone-500 dark:text-stone-400">
+          <span className="h-2 w-2 rounded-full bg-[#25D366]" />
+          {shown.length} {shown.length === 1 ? "producto disponible" : "productos disponibles"}
+        </p>
 
         {shown.length === 0 && (
           <p className="py-16 text-center text-stone-500">No encontramos productos con esa búsqueda.</p>
         )}
 
-        {/* Productos */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3">
+        {/* Productos: 2 columnas en celular, 3–4 en pantallas grandes */}
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {shown.map((p) => {
             const soldOut = p.available === false;
             return (
               <article
                 key={p.id}
-                className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-stone-200 transition hover:shadow-lg dark:bg-stone-900 dark:ring-stone-800"
+                className="flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200 transition hover:ring-stone-300 dark:bg-stone-900 dark:ring-stone-800 dark:hover:ring-stone-700"
               >
-                <button onClick={() => open(p)} className="relative block text-left" aria-label={`Ver ${p.name}`}>
-                  <Photo p={p} className="aspect-square w-full" />
-                  <span
-                    className={`absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                      soldOut ? "bg-stone-900/80 text-white" : "bg-white/90 text-emerald-700"
-                    }`}
-                  >
-                    {soldOut ? "Agotado" : "● Disponible"}
-                  </span>
+                <button onClick={() => open(p)} className="relative block" aria-label={`Ver ${p.name}`}>
+                  <Photo p={p} className={`aspect-square w-full ${soldOut ? "opacity-50 grayscale" : ""}`} />
+                  {soldOut && (
+                    <span className="absolute left-2 top-2 rounded-full bg-stone-950/80 px-2 py-0.5 text-[11px] font-bold text-white">
+                      Agotado
+                    </span>
+                  )}
                 </button>
-                <div className="flex flex-1 flex-col gap-1 p-3">
+                <div className="flex flex-1 flex-col p-2.5">
                   <button onClick={() => open(p)} className="text-left">
-                    <h2 className="font-semibold leading-tight">{p.name}</h2>
+                    <h2 className="line-clamp-2 text-[14px] font-semibold leading-snug">{p.name}</h2>
                   </button>
-                  <p className="mt-auto pt-1 text-xl font-extrabold">{money(p.price)}</p>
-                  <a
-                    href={soldOut ? undefined : productWhatsAppUrl(p)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-disabled={soldOut}
-                    className={`mt-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-bold transition active:scale-95 ${
-                      soldOut
-                        ? "pointer-events-none bg-stone-200 text-stone-400 dark:bg-stone-800"
-                        : "bg-[#25D366] text-stone-950 hover:brightness-95"
-                    }`}
-                  >
-                    <WaIcon className="h-4 w-4" /> {soldOut ? "Agotado" : "Pedir"}
-                  </a>
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                    <p className="text-[17px] font-extrabold tabular-nums">{money(p.price)}</p>
+                    <a
+                      href={soldOut ? undefined : productWhatsAppUrl(p)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-disabled={soldOut}
+                      aria-label={`Pedir ${p.name} por WhatsApp`}
+                      className={`flex h-9 shrink-0 items-center gap-1 rounded-full px-3 text-[13px] font-bold transition active:scale-95 ${
+                        soldOut
+                          ? "pointer-events-none bg-stone-200 text-stone-400 dark:bg-stone-800"
+                          : "bg-[#25D366] text-stone-950 hover:brightness-95"
+                      }`}
+                    >
+                      <WaIcon className="h-4 w-4" /> Pedir
+                    </a>
+                  </div>
                 </div>
               </article>
             );
           })}
         </div>
 
-        <p className="mt-10 text-center text-sm text-stone-500 dark:text-stone-400">
+        <p className="mt-8 text-center text-sm text-stone-500 dark:text-stone-400">
           ¿No encuentras lo que buscas?{" "}
-          <a href={contactWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+          <a href={contactWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-600 underline dark:text-[#25D366]">
             Escríbenos por WhatsApp
           </a>
         </p>
@@ -173,7 +174,7 @@ export default function Store({ products }: { products: Product[] }) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Escríbenos por WhatsApp"
-        className="fixed bottom-5 right-5 z-10 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105"
+        className="fixed bottom-4 right-4 z-10 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105"
       >
         <WaIcon className="h-7 w-7" />
       </a>
