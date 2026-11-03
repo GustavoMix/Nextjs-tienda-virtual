@@ -115,7 +115,6 @@ function Chips({
 export default function ProductDetail({ p }: { p: Product }) {
   const [size, setSize] = useState<string>();
   const [color, setColor] = useState<string>();
-  const [qty, setQty] = useState(1);
   const [warn, setWarn] = useState(false);
   const [toast, setToast] = useState("");
   const sizesRef = useRef<HTMLDivElement>(null);
@@ -123,7 +122,7 @@ export default function ProductDetail({ p }: { p: Product }) {
   const soldOut = p.available === false;
   const needsSize = !!p.sizes?.length && !size;
   const link = SITE_URL ? `${SITE_URL}/producto/${p.id}/` : undefined;
-  const waUrl = productWhatsAppUrl(p, { qty, size, color, link });
+  const waUrl = productWhatsAppUrl(p, { size, color, link });
   const off = p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
 
   const flash = (m: string) => {
@@ -219,53 +218,17 @@ export default function ProductDetail({ p }: { p: Product }) {
           )}
           {!!p.colors?.length && <Chips label="Color" options={p.colors} value={color} onChange={setColor} />}
 
-          <div className="flex items-center gap-3">
-            <p className="text-sm font-semibold">Cantidad</p>
-            <div className="flex items-center gap-3 rounded-full bg-stone-100 p-1 dark:bg-stone-900">
-              <button onClick={() => setQty((n) => Math.max(1, n - 1))} aria-label="Menos" className="h-9 w-9 rounded-full bg-white text-lg font-bold shadow-sm dark:bg-stone-700">−</button>
-              <span className="w-5 text-center font-bold tabular-nums">{qty}</span>
-              <button onClick={() => setQty((n) => n + 1)} aria-label="Más" className="h-9 w-9 rounded-full bg-white text-lg font-bold shadow-sm dark:bg-stone-700">+</button>
-            </div>
-          </div>
-
           <div className="hidden sm:flex">{cta}</div>
 
-          <section>
-            <h2 className="mb-1.5 text-sm font-semibold">Descripción</h2>
-            <p className="leading-relaxed text-stone-600 dark:text-stone-300">{p.description}</p>
-          </section>
+          <p className="leading-relaxed text-stone-600 dark:text-stone-300">{p.description}</p>
 
-          {p.details && Object.keys(p.details).length > 0 && (
-            <section>
-              <h2 className="mb-2 text-sm font-semibold">Detalles</h2>
-              <dl className="divide-y divide-stone-200 overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200 dark:divide-stone-800 dark:bg-stone-900 dark:ring-stone-800">
-                {p.brand && (
-                  <div className="flex justify-between gap-4 px-4 py-2.5 text-sm">
-                    <dt className="text-stone-500 dark:text-stone-400">Marca</dt>
-                    <dd className="text-right font-medium">{p.brand}</dd>
-                  </div>
-                )}
-                {Object.entries(p.details).map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-4 px-4 py-2.5 text-sm">
-                    <dt className="text-stone-500 dark:text-stone-400">{k}</dt>
-                    <dd className="text-right font-medium">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          )}
-
-          <section className="grid gap-2">
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
             {STORE_INFO.map((s) => (
-              <div key={s.title} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
-                <span className="text-xl">{s.icon}</span>
-                <div className="text-sm">
-                  <p className="font-semibold">{s.title}</p>
-                  <p className="text-stone-500 dark:text-stone-400">{s.text}</p>
-                </div>
-              </div>
+              <span key={s.title}>
+                {s.icon} {s.short}
+              </span>
             ))}
-          </section>
+          </p>
         </div>
       </main>
 
@@ -273,8 +236,7 @@ export default function ProductDetail({ p }: { p: Product }) {
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-stone-200 bg-white/95 px-3 pb-[calc(.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95 sm:hidden">
         <div className="flex items-center gap-3">
           <div className="shrink-0">
-            <p className="text-[11px] text-stone-500 dark:text-stone-400">Total</p>
-            <p className="text-lg font-extrabold leading-tight tabular-nums">{money(p.price * qty)}</p>
+            <p className="text-lg font-extrabold leading-tight tabular-nums">{money(p.price)}</p>
           </div>
           {cta}
         </div>

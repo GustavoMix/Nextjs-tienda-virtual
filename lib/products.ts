@@ -9,7 +9,6 @@ export type Product = {
   images: string[]; // 1 a 3+ fotos: "/productos/mi-foto.jpg" (carpeta public/productos) o URL completa
   sizes?: string[]; // tallas o medidas para elegir
   colors?: string[]; // colores para elegir
-  details?: Record<string, string>; // ficha técnica: { "Material": "Cuero", ... }
   available?: boolean; // false = "Agotado"
 };
 
@@ -29,7 +28,6 @@ const PRODUCTS: Product[] = [
     images: [u("1542291026-7eec264c27ff"), u("1460353581641-37baddab0fa2"), u("1606107557195-0e29a4b5b4aa")],
     sizes: ["37", "38", "39", "40", "41", "42", "43"],
     colors: ["Rojo", "Negro", "Blanco"],
-    details: { Material: "Malla transpirable", Suela: "Goma antideslizante", Uso: "Deporte / casual", Estado: "Nuevo, en caja" },
   },
   {
     id: "reloj-clasico",
@@ -40,7 +38,6 @@ const PRODUCTS: Product[] = [
     description: "Diseño elegante con correa de cuero. Perfecto para uso diario o para regalo.",
     images: [u("1523275335684-37898b6baf30"), u("1524592094714-0f0654e20314"), u("1522312346375-d1a52e2b99b3")],
     colors: ["Café", "Negro"],
-    details: { Correa: "Cuero sintético", Esfera: "40 mm", Resistencia: "Al agua (salpicaduras)", Garantía: "3 meses" },
   },
   {
     id: "audifonos-inalambricos",
@@ -51,7 +48,6 @@ const PRODUCTS: Product[] = [
     description: "Bluetooth, buena batería y sonido potente con bajos marcados. Incluye cable de carga.",
     images: [u("1505740420928-5e560c06d30e"), u("1583394838336-acd977736f90"), u("1484704849700-f032a568e944")],
     colors: ["Negro", "Blanco"],
-    details: { Conexión: "Bluetooth 5.0", Batería: "Hasta 20 horas", Micrófono: "Sí, para llamadas", Incluye: "Cable USB-C" },
   },
   {
     id: "lentes-de-sol",
@@ -63,7 +59,6 @@ const PRODUCTS: Product[] = [
     description: "Protección UV400 y marco resistente. Incluye estuche y paño de limpieza.",
     images: [u("1572635196237-14b3f281503f"), u("1511499767150-a48a237f0083"), u("1577803645773-f96470509666")],
     colors: ["Negro", "Carey"],
-    details: { Protección: "UV400", Marco: "Acetato", Lente: "Polarizado", Incluye: "Estuche + paño" },
   },
   {
     id: "mochila-urbana",
@@ -75,7 +70,6 @@ const PRODUCTS: Product[] = [
     images: [u("1553062407-98eeb64c6a62"), u("1622560480605-d83c853bc5c3"), u("1581605405669-fcdf81165afa")],
     sizes: ["20 L", "30 L"],
     colors: ["Negro", "Gris"],
-    details: { Material: "Poliéster resistente al agua", Laptop: "Hasta 15.6\"", Bolsillos: "5", Garantía: "6 meses" },
   },
   {
     id: "camara-instantanea",
@@ -86,7 +80,6 @@ const PRODUCTS: Product[] = [
     description: "Fotos al momento para tus mejores recuerdos. Fácil de usar, ideal para regalo.",
     images: [u("1526170375885-4d8ecf77b99f"), u("1502920917128-1aa500764cbd"), u("1510127034890-ba27508e9f1c")],
     colors: ["Celeste", "Rosado", "Blanco"],
-    details: { Formato: "Instax Mini", Flash: "Automático", Pilas: "2 x AA (incluidas)", Incluye: "Correa" },
   },
 ];
 

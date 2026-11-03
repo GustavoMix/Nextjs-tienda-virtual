@@ -25,7 +25,6 @@ Ahora hay 6 productos de demostración con fotos de Unsplash.
   images: ["/productos/nike-1.jpg", "/productos/nike-2.jpg", "/productos/nike-3.jpg"],
   sizes: ["38", "39", "40"],              // opcional: el cliente debe elegir una
   colors: ["Rojo", "Negro"],              // opcional
-  details: { Material: "Malla", Estado: "Nuevo" }, // opcional: tabla de detalles
   available: true,                        // false = Agotado
 }
 ```
@@ -51,3 +50,12 @@ El workflow `.github/workflows/pages.yml` publica solo en cada push.
 1. Ya está activado: GitHub Pages sirve la rama `gh-pages`, que el workflow actualiza en cada push.
 2. (Opcional) **Settings → Secrets and variables → Actions → Variables**: crea `WHATSAPP_NUMBER` con tu número.
 3. Tu tienda quedará en https://gustavomix.github.io/Nextjs-tienda-virtual/.
+
+## Panel de admin (prototipo)
+- Entra en `/admin` (o con el link "Ingresar como admin" al final de la tienda).
+- **Ahora es solo la interfaz:** acepta cualquier correo/contraseña y los cambios no se guardan.
+- Para hacerlo real con Supabase:
+  1. **Login:** cambia las funciones de `lib/auth.ts` por Supabase Auth (`signInWithPassword`, `signOut`, `getUser`) y crea tu usuario admin en Supabase.
+  2. **Guardar productos:** en `components/admin/AdminApp.tsx`, `save`, `toggle` y `remove` deben hacer `insert/update/delete` en la tabla `products`.
+  3. **Fotos:** en `components/admin/ProductForm.tsx`, sube los archivos a Supabase Storage y guarda la URL pública en `images`.
+  4. **Seguridad:** activa RLS en `products`: lectura pública y escritura solo para el admin.

@@ -144,6 +144,11 @@ export default function Store({ products }: { products: Product[] }) {
             Escríbenos por WhatsApp
           </a>
         </p>
+        <p className="mt-6 text-center">
+          <Link href="/admin" className="text-xs text-stone-400 hover:underline dark:text-stone-600">
+            Ingresar como admin
+          </Link>
+        </p>
       </main>
 
       {/* Botón flotante de WhatsApp */}
