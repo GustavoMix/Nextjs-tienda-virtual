@@ -10,6 +10,7 @@ npm run dev                  # http://localhost:3000
 ```
 
 ## Subir tus productos
+(Ahora hay 6 productos de demostración con fotos de Unsplash.)
 1. Guarda las fotos (las de Facebook) en `public/productos/`.
 2. Edita `lib/products.ts` y agrega cada producto:
    `{ id: "5", name: "Mi producto", description: "...", price: 120, image: "/productos/foto.jpg" }`

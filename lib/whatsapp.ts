@@ -1,16 +1,22 @@
 import { CURRENCY, LOCALE, WHATSAPP_NUMBER } from "./config";
 import type { Product } from "./products";
 
-export type CartItem = { product: Product; qty: number };
-
 export const money = (n: number) =>
-  new Intl.NumberFormat(LOCALE, { style: "currency", currency: CURRENCY }).format(n);
+  new Intl.NumberFormat(LOCALE, {
+    style: "currency",
+    currency: CURRENCY,
+    maximumFractionDigits: 0,
+  }).format(n);
 
-export function buildWhatsAppUrl(items: CartItem[]) {
-  const lines = items.map(
-    (i) => `• ${i.qty} x ${i.product.name} — ${money(i.product.price * i.qty)}`
+const wa = (text: string) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+
+// Enlace para pedir un producto concreto
+export const productWhatsAppUrl = (p: Product, qty = 1) =>
+  wa(
+    `¡Hola! 👋 Me interesa este producto:\n\n🛍️ ${p.name}\nCantidad: ${qty}\nPrecio: ${money(p.price * qty)}\n\n¿Está disponible?`
   );
-  const total = items.reduce((s, i) => s + i.product.price * i.qty, 0);
-  const text = `Hola, quiero hacer este pedido:\n\n${lines.join("\n")}\n\nTotal: ${money(total)}`;
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-}
+
+// Enlace de contacto general
+export const contactWhatsAppUrl = () =>
+  wa("¡Hola! 👋 Vi tu tienda y quiero hacer una consulta.");

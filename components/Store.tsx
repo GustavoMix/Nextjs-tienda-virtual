@@ -2,214 +2,232 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/lib/products";
-import { buildWhatsAppUrl, money, type CartItem } from "@/lib/whatsapp";
+import { contactWhatsAppUrl, money, productWhatsAppUrl } from "@/lib/whatsapp";
 import { BASE_PATH, STORE_NAME, STORE_TAGLINE } from "@/lib/config";
+import ThemeToggle from "./ThemeToggle";
 
-const KEY = "tienda-carrito";
-const img = (src: string) => (src.startsWith("/") ? BASE_PATH + src : src);
+const src = (s: string) => (s.startsWith("/") ? BASE_PATH + s : s);
 
-const WaIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
+const WaIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={`${className} fill-current`} aria-hidden>
     <path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Zm5.8 14.2c-.2.7-1.4 1.3-2 1.3-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5-4.5-.1-.2-1.2-1.6-1.2-3s.8-2.1 1-2.4c.3-.3.6-.3.8-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.3.3c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.2.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.7-.1 1.2Z" />
   </svg>
 );
 
+function Photo({ p, className }: { p: Product; className: string }) {
+  const [broken, setBroken] = useState(false);
+  if (!p.image || broken)
+    return <div className={`${className} grid place-items-center bg-stone-200 text-5xl dark:bg-stone-800`}>📦</div>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src(p.image)} alt={p.name} loading="lazy" onError={() => setBroken(true)} className={`${className} object-cover`} />
+  );
+}
+
 export default function Store({ products }: { products: Product[] }) {
-  const [cart, setCart] = useState<Record<string, number>>({});
-  const [open, setOpen] = useState(false);
-  const [ready, setReady] = useState(false);
   const [q, setQ] = useState("");
-  const [toast, setToast] = useState("");
+  const [cat, setCat] = useState("Todos");
+  const [sel, setSel] = useState<Product | null>(null);
+  const [qty, setQty] = useState(1);
 
-  useEffect(() => {
-    // Leer el carrito guardado solo en el navegador (evita errores de hidratación)
-    /* eslint-disable react-hooks/set-state-in-effect */
-    try {
-      setCart(JSON.parse(localStorage.getItem(KEY) ?? "{}"));
-    } catch {}
-    setReady(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
-
-  useEffect(() => {
-    if (ready) localStorage.setItem(KEY, JSON.stringify(cart));
-  }, [cart, ready]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(""), 1600);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  const items: CartItem[] = useMemo(
-    () => products.filter((p) => cart[p.id] > 0).map((p) => ({ product: p, qty: cart[p.id] })),
-    [products, cart]
+  const cats = useMemo(
+    () => ["Todos", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))],
+    [products]
   );
-  const count = items.reduce((s, i) => s + i.qty, 0);
-  const total = items.reduce((s, i) => s + i.product.price * i.qty, 0);
-  const shown = products.filter((p) =>
-    (p.name + " " + p.description).toLowerCase().includes(q.trim().toLowerCase())
+  const shown = products.filter(
+    (p) =>
+      (cat === "Todos" || p.category === cat) &&
+      (p.name + " " + p.description).toLowerCase().includes(q.trim().toLowerCase())
   );
 
-  const change = (id: string, d: number) =>
-    setCart((c) => {
-      const qty = Math.max(0, (c[id] ?? 0) + d);
-      const next = { ...c, [id]: qty };
-      if (qty === 0) delete next[id];
-      return next;
-    });
-
-  const add = (p: Product) => {
-    change(p.id, 1);
-    setToast(`✓ ${p.name} agregado`);
+  const open = (p: Product) => {
+    setSel(p);
+    setQty(1);
   };
 
+  useEffect(() => {
+    if (!sel) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSel(null);
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [sel]);
+
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900">
-      <header className="sticky top-0 z-10 border-b border-stone-200/70 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-600 text-lg text-white">🛍️</span>
-            <span className="text-lg font-bold tracking-tight">{STORE_NAME}</span>
+    <div className="min-h-screen bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      {/* Encabezado */}
+      <header className="sticky top-0 z-10 border-b border-stone-200/80 bg-white/85 backdrop-blur dark:border-stone-800 dark:bg-stone-900/85">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0">
+            <p className="truncate text-lg font-extrabold tracking-tight">{STORE_NAME}</p>
+            <p className="truncate text-xs text-stone-500 dark:text-stone-400">{STORE_TAGLINE}</p>
           </div>
-          <button
-            onClick={() => setOpen(true)}
-            className="relative flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700"
-          >
-            🛒 Carrito
-            {count > 0 && (
-              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-emerald-500 px-1 text-xs">{count}</span>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <a
+              href={contactWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-full bg-[#25D366] px-4 py-2.5 text-sm font-bold text-stone-950 transition hover:brightness-95"
+            >
+              <WaIcon className="h-4 w-4" /> Escríbenos
+            </a>
+          </div>
         </div>
       </header>
 
-      <section className="bg-gradient-to-br from-emerald-600 to-teal-700 px-4 py-10 text-center text-white">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{STORE_TAGLINE}</h1>
-        <p className="mx-auto mt-2 max-w-md text-emerald-50">
-          Elige tus productos, agrégalos al carrito y envía tu pedido directo a nuestro WhatsApp.
-        </p>
-        <ol className="mx-auto mt-5 flex max-w-md justify-center gap-4 text-xs text-emerald-50 sm:text-sm">
-          <li>1️⃣ Elige</li>
-          <li>2️⃣ Agrega al carrito</li>
-          <li>3️⃣ Pide por WhatsApp</li>
-        </ol>
-      </section>
-
-      <main className="mx-auto max-w-5xl px-4 pb-28 pt-6">
+      <main className="mx-auto max-w-5xl px-4 pb-24 pt-5">
+        {/* Título + buscador + categorías */}
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <h1 className="text-2xl font-extrabold tracking-tight">Productos disponibles</h1>
+          <span className="shrink-0 rounded-full bg-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+            {shown.length} {shown.length === 1 ? "producto" : "productos"}
+          </span>
+        </div>
         <input
+          type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="🔍 Buscar producto..."
-          className="mb-5 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 outline-none ring-emerald-500 focus:ring-2"
+          placeholder="🔍  Buscar producto…"
+          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 outline-none ring-[#25D366] focus:ring-2 dark:border-stone-800 dark:bg-stone-900"
         />
-        {shown.length === 0 && <p className="py-10 text-center text-stone-500">No encontramos productos con esa búsqueda.</p>}
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        {cats.length > 2 && (
+          <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
+            {cats.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCat(c)}
+                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  c === cat
+                    ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                    : "bg-white text-stone-600 ring-1 ring-stone-200 dark:bg-stone-900 dark:text-stone-300 dark:ring-stone-800"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {shown.length === 0 && (
+          <p className="py-16 text-center text-stone-500">No encontramos productos con esa búsqueda.</p>
+        )}
+
+        {/* Productos */}
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3">
           {shown.map((p) => {
-            const inCart = cart[p.id] ?? 0;
+            const soldOut = p.available === false;
             return (
               <article
                 key={p.id}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-stone-200 transition hover:shadow-lg dark:bg-stone-900 dark:ring-stone-800"
               >
-                <div className="aspect-square overflow-hidden bg-stone-100">
-                  {p.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img(p.image)} alt={p.name} className="h-full w-full object-cover transition group-hover:scale-105" />
-                  ) : (
-                    <div className="grid h-full place-items-center text-5xl">📦</div>
-                  )}
-                </div>
+                <button onClick={() => open(p)} className="relative block text-left" aria-label={`Ver ${p.name}`}>
+                  <Photo p={p} className="aspect-square w-full" />
+                  <span
+                    className={`absolute left-2 top-2 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                      soldOut ? "bg-stone-900/80 text-white" : "bg-white/90 text-emerald-700"
+                    }`}
+                  >
+                    {soldOut ? "Agotado" : "● Disponible"}
+                  </span>
+                </button>
                 <div className="flex flex-1 flex-col gap-1 p-3">
-                  <h2 className="font-semibold leading-tight">{p.name}</h2>
-                  <p className="line-clamp-2 text-xs text-stone-500 sm:text-sm">{p.description}</p>
-                  <p className="mt-auto pt-2 text-lg font-extrabold text-emerald-700">{money(p.price)}</p>
-                  {inCart > 0 ? (
-                    <div className="mt-1 flex items-center justify-between rounded-xl bg-emerald-50 p-1">
-                      <button onClick={() => change(p.id, -1)} className="h-9 w-9 rounded-lg bg-white font-bold shadow-sm">−</button>
-                      <span className="font-semibold">{inCart}</span>
-                      <button onClick={() => change(p.id, 1)} className="h-9 w-9 rounded-lg bg-white font-bold shadow-sm">+</button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => add(p)}
-                      className="mt-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
-                    >
-                      Agregar
-                    </button>
-                  )}
+                  <button onClick={() => open(p)} className="text-left">
+                    <h2 className="font-semibold leading-tight">{p.name}</h2>
+                  </button>
+                  <p className="mt-auto pt-1 text-xl font-extrabold">{money(p.price)}</p>
+                  <a
+                    href={soldOut ? undefined : productWhatsAppUrl(p)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-disabled={soldOut}
+                    className={`mt-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-bold transition active:scale-95 ${
+                      soldOut
+                        ? "pointer-events-none bg-stone-200 text-stone-400 dark:bg-stone-800"
+                        : "bg-[#25D366] text-stone-950 hover:brightness-95"
+                    }`}
+                  >
+                    <WaIcon className="h-4 w-4" /> {soldOut ? "Agotado" : "Pedir"}
+                  </a>
                 </div>
               </article>
             );
           })}
         </div>
+
+        <p className="mt-10 text-center text-sm text-stone-500 dark:text-stone-400">
+          ¿No encuentras lo que buscas?{" "}
+          <a href={contactWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-600 underline dark:text-emerald-400">
+            Escríbenos por WhatsApp
+          </a>
+        </p>
       </main>
 
-      {count > 0 && !open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed inset-x-4 bottom-4 z-10 mx-auto flex max-w-md items-center justify-between rounded-2xl bg-emerald-600 px-5 py-4 font-semibold text-white shadow-xl"
-        >
-          <span>Ver pedido ({count})</span>
-          <span>{money(total)}</span>
-        </button>
-      )}
+      {/* Botón flotante de WhatsApp */}
+      <a
+        href={contactWhatsAppUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Escríbenos por WhatsApp"
+        className="fixed bottom-5 right-5 z-10 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105"
+      >
+        <WaIcon className="h-7 w-7" />
+      </a>
 
-      {toast && (
-        <div className="fixed left-1/2 top-16 z-30 -translate-x-1/2 rounded-full bg-stone-900 px-4 py-2 text-sm text-white shadow-lg">
-          {toast}
-        </div>
-      )}
-
-      {open && (
-        <div className="fixed inset-0 z-20 flex justify-end bg-black/50" onClick={() => setOpen(false)}>
-          <aside className="flex h-full w-full max-w-sm flex-col bg-white p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">Tu pedido</h2>
-              <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-stone-100 text-xl">×</button>
-            </div>
-
-            <div className="flex-1 space-y-3 overflow-y-auto">
-              {items.length === 0 && (
-                <div className="py-16 text-center text-stone-500">
-                  <p className="text-5xl">🛒</p>
-                  <p className="mt-2">Tu carrito está vacío.</p>
-                </div>
-              )}
-              {items.map(({ product, qty }) => (
-                <div key={product.id} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 p-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{product.name}</p>
-                    <p className="text-sm font-semibold text-emerald-700">{money(product.price * qty)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => change(product.id, -1)} className="h-8 w-8 rounded-full border">−</button>
-                    <span className="w-5 text-center">{qty}</span>
-                    <button onClick={() => change(product.id, 1)} className="h-8 w-8 rounded-full border">+</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t pt-4">
-              <p className="mb-3 flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span>{money(total)}</span>
-              </p>
-              <a
-                href={items.length ? buildWhatsAppUrl(items) : undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-disabled={!items.length}
-                className={`flex items-center justify-center gap-2 rounded-xl py-3.5 font-semibold text-white ${
-                  items.length ? "bg-[#25D366] hover:brightness-95" : "pointer-events-none bg-stone-300"
-                }`}
+      {/* Detalle del producto */}
+      {sel && (
+        <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={() => setSel(null)}>
+          <div
+            role="dialog"
+            aria-label={sel.name}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white dark:bg-stone-900 sm:rounded-3xl"
+          >
+            <div className="relative">
+              <Photo p={sel} className="aspect-square w-full" />
+              <button
+                onClick={() => setSel(null)}
+                aria-label="Cerrar"
+                className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-xl text-stone-900 shadow"
               >
-                <WaIcon /> Pedir por WhatsApp
-              </a>
-              <p className="mt-2 text-center text-xs text-stone-500">Se abrirá WhatsApp con tu pedido listo para enviar.</p>
+                ×
+              </button>
             </div>
-          </aside>
+            <div className="space-y-3 p-5">
+              {sel.category && (
+                <p className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">{sel.category}</p>
+              )}
+              <h2 className="text-2xl font-extrabold leading-tight">{sel.name}</h2>
+              <p className="text-stone-600 dark:text-stone-300">{sel.description}</p>
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-3xl font-extrabold">{money(sel.price * qty)}</p>
+                <div className="flex items-center gap-3 rounded-full bg-stone-100 p-1 dark:bg-stone-800">
+                  <button onClick={() => setQty((n) => Math.max(1, n - 1))} aria-label="Menos" className="h-9 w-9 rounded-full bg-white text-lg font-bold shadow-sm dark:bg-stone-700">−</button>
+                  <span className="w-5 text-center font-bold">{qty}</span>
+                  <button onClick={() => setQty((n) => n + 1)} aria-label="Más" className="h-9 w-9 rounded-full bg-white text-lg font-bold shadow-sm dark:bg-stone-700">+</button>
+                </div>
+              </div>
+              {sel.available === false ? (
+                <p className="rounded-2xl bg-stone-100 py-4 text-center font-semibold text-stone-500 dark:bg-stone-800">Agotado por ahora</p>
+              ) : (
+                <a
+                  href={productWhatsAppUrl(sel, qty)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-4 text-lg font-bold text-stone-950 transition hover:brightness-95"
+                >
+                  <WaIcon /> Pedir por WhatsApp
+                </a>
+              )}
+              <p className="text-center text-xs text-stone-500 dark:text-stone-400">
+                Se abre WhatsApp con tu pedido listo. Coordinamos pago y entrega por chat.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
