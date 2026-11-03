@@ -20,7 +20,7 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
   };
 
   if (list.length === 0)
-    return <div className="grid aspect-square w-full place-items-center bg-stone-200 text-7xl dark:bg-stone-800">📦</div>;
+    return <div className="grid aspect-square w-full place-items-center bg-stone-200 text-7xl dark:bg-stone-800 sm:rounded-3xl">📦</div>;
 
   return (
     <div>
@@ -164,15 +164,20 @@ export default function ProductDetail({ p }: { p: Product }) {
   );
 
   return (
-    <div className="min-h-screen bg-stone-50 pb-28 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
-      <header className="sticky top-0 z-10 border-b border-stone-200/80 bg-white/90 backdrop-blur dark:border-stone-800/80 dark:bg-stone-950/90">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
-          <Link href="/" className="flex h-10 items-center gap-1 rounded-full pr-3 text-sm font-semibold">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-stone-100 text-xl dark:bg-stone-900">‹</span>
-            <span className="truncate">{STORE_NAME}</span>
+    <div className="relative min-h-screen bg-stone-50 pb-28 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      {/* En celular los botones flotan sobre la foto; en computadora es una barra normal */}
+      <header className="absolute inset-x-0 top-0 z-10 sm:sticky sm:border-b sm:border-stone-200/80 sm:bg-white/90 sm:backdrop-blur sm:dark:border-stone-800/80 sm:dark:bg-stone-950/90">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-2.5">
+          <Link href="/" className="flex h-10 items-center gap-1 rounded-full text-sm font-semibold">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-black/45 text-xl text-white backdrop-blur sm:bg-stone-100 sm:text-stone-900 sm:dark:bg-stone-900 sm:dark:text-stone-100">‹</span>
+            <span className="hidden truncate pl-1 sm:inline">{STORE_NAME}</span>
           </Link>
           <div className="flex items-center gap-2">
-            <button onClick={share} aria-label="Compartir producto" className="grid h-10 w-10 place-items-center rounded-full bg-stone-100 dark:bg-stone-900">
+            <button
+              onClick={share}
+              aria-label="Compartir producto"
+              className="grid h-10 w-10 place-items-center rounded-full bg-black/45 text-white backdrop-blur sm:bg-stone-100 sm:text-stone-900 sm:dark:bg-stone-900 sm:dark:text-stone-100"
+            >
               <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14" />
               </svg>
@@ -182,8 +187,8 @@ export default function ProductDetail({ p }: { p: Product }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl sm:grid sm:grid-cols-2 sm:gap-8 sm:px-4 sm:pt-6">
-        <Gallery images={p.images} alt={p.name} />
+      <main className="mx-auto max-w-6xl sm:grid sm:grid-cols-2 sm:items-start sm:gap-8 sm:px-4 sm:pb-10 sm:pt-6 lg:grid-cols-[3fr_2fr]">
+        <div className="sm:sticky sm:top-20"><Gallery images={p.images} alt={p.name} /></div>
 
         <div className="space-y-5 px-3 pt-4 sm:px-0 sm:pt-0">
           <div className="space-y-1.5">
