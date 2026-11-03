@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductDetail from "@/components/ProductDetail";
 import { getProduct, getProducts } from "@/lib/products";
-import { STORE_NAME } from "@/lib/config";
+import { money } from "@/lib/whatsapp";
+import { SITE_URL, STORE_NAME } from "@/lib/config";
 
 // Se genera una página por producto al compilar (necesario para GitHub Pages)
 export const dynamicParams = false;
@@ -19,7 +20,14 @@ export async function generateMetadata({ params }: PageProps<"/producto/[id]">):
   return {
     title: `${p.name} | ${STORE_NAME}`,
     description: p.description,
-    openGraph: { title: p.name, description: p.description, images: p.images.slice(0, 1) },
+    // Vista previa al pegar el link en Facebook / WhatsApp (necesita la URL completa de la foto)
+    openGraph: {
+      title: `${p.name} · ${money(p.price)}`,
+      description: p.description,
+      url: SITE_URL ? `${SITE_URL}/producto/${p.id}/` : undefined,
+      siteName: STORE_NAME,
+      images: p.images.slice(0, 1).map((u) => (u.startsWith("/") ? SITE_URL + u : u)),
+    },
   };
 }
 

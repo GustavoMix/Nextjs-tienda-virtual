@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { STATUSES, statusOf, type Product, type Status } from "@/lib/products";
 import { getUser, signIn, signOut, type AdminUser } from "@/lib/auth";
 import { money } from "@/lib/whatsapp";
-import { STORE_NAME } from "@/lib/config";
+import { BASE_PATH, STORE_NAME } from "@/lib/config";
 import ThemeToggle from "../ThemeToggle";
 import { Photo } from "../ui";
 import ProductForm from "./ProductForm";
@@ -56,6 +56,19 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
   const [products, setProducts] = useState(initialProducts);
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [copied, setCopied] = useState("");
+
+  // Copia el link directo del producto para pegarlo en Facebook / WhatsApp
+  const copyLink = async (id: string) => {
+    const url = `${window.location.origin}${BASE_PATH}/producto/${id}/`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      window.prompt("Copia el link:", url);
+    }
+    setCopied(id);
+    setTimeout(() => setCopied(""), 1600);
+  };
 
   useEffect(() => {
     getUser().then(setUser);
@@ -144,6 +157,9 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
                   </div>
                 ) : (
                   <div className="flex shrink-0 items-center gap-1.5">
+                    <button onClick={() => copyLink(p.id)} aria-label={`Copiar link de ${p.name}`} title="Copiar link" className="grid h-9 w-9 place-items-center rounded-lg bg-stone-100 dark:bg-stone-800">
+                      {copied === p.id ? "✅" : "🔗"}
+                    </button>
                     <button onClick={() => setEditing(p)} aria-label={`Editar ${p.name}`} className="grid h-9 w-9 place-items-center rounded-lg bg-stone-100 dark:bg-stone-800">✏️</button>
                     <button onClick={() => setConfirmId(p.id)} aria-label={`Eliminar ${p.name}`} className="grid h-9 w-9 place-items-center rounded-lg bg-stone-100 dark:bg-stone-800">🗑️</button>
                   </div>

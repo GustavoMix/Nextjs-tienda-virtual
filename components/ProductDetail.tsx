@@ -6,11 +6,13 @@ import { statusOf, type Product } from "@/lib/products";
 import { money, productWhatsAppUrl, reservedWhatsAppUrl, similarWhatsAppUrl } from "@/lib/whatsapp";
 import { SITE_URL, STORE_INFO, STORE_NAME } from "@/lib/config";
 import ThemeToggle from "./ThemeToggle";
+import PhotoViewer from "./PhotoViewer";
 import { WaIcon, src } from "./ui";
 
 function Gallery({ images, alt }: { images: string[]; alt: string }) {
   const [broken, setBroken] = useState<string[]>([]);
   const [i, setI] = useState(0);
+  const [viewer, setViewer] = useState<number | null>(null);
   const track = useRef<HTMLDivElement>(null);
   const list = images.filter((u) => !broken.includes(u));
 
@@ -41,10 +43,17 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
               alt={`${alt} – foto ${n + 1}`}
               loading={n === 0 ? "eager" : "lazy"}
               onError={() => setBroken((b) => [...b, u])}
-              className="h-full w-full shrink-0 snap-center object-cover"
+              onClick={() => setViewer(n)}
+              className="h-full w-full shrink-0 cursor-zoom-in snap-center object-cover"
             />
           ))}
         </div>
+        <button
+          onClick={() => setViewer(Math.min(i, list.length - 1))}
+          className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-black/75"
+        >
+          🔍 Ampliar · 3D
+        </button>
         {list.length > 1 && (
           <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
             {Math.min(i, list.length - 1) + 1} / {list.length}
@@ -68,6 +77,51 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
           ))}
         </div>
       )}
+      {viewer !== null && <PhotoViewer images={list} start={viewer} alt={alt} onClose={() => setViewer(null)} />}
+    </div>
+  );
+}
+
+function ShareSheet({ name, onClose, onCopied }: { name: string; onClose: () => void; onCopied: () => void }) {
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  const text = `Mira esta ${name}: ${url}`;
+  const canNative = typeof navigator !== "undefined" && !!navigator.share;
+  const item = "flex flex-col items-center gap-1.5 text-xs font-semibold";
+  const circle = "grid h-14 w-14 place-items-center rounded-full text-2xl";
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      window.prompt("Copia el link:", url);
+    }
+    onCopied();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] dark:bg-stone-900 sm:rounded-3xl">
+        <p className="text-center font-extrabold">Compartir producto</p>
+        <p className="mt-1 truncate rounded-xl bg-stone-100 px-3 py-2 text-center text-xs text-stone-500 dark:bg-stone-800 dark:text-stone-400">{url}</p>
+        <div className={`mt-4 grid gap-2 ${canNative ? "grid-cols-4" : "grid-cols-3"}`}>
+          <button onClick={copy} className={item}>
+            <span className={`${circle} bg-stone-200 dark:bg-stone-700`}>🔗</span>Copiar link
+          </button>
+          <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer" className={item}>
+            <span className={`${circle} bg-[#25D366] text-stone-950`}><WaIcon className="h-7 w-7" /></span>WhatsApp
+          </a>
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noopener noreferrer" className={item}>
+            <span className={`${circle} bg-[#1877F2] font-black text-white`}>f</span>Facebook
+          </a>
+          {canNative && (
+            <button onClick={() => navigator.share({ title: name, url }).catch(() => {})} className={item}>
+              <span className={`${circle} bg-stone-200 dark:bg-stone-700`}>⋯</span>Más
+            </button>
+          )}
+        </div>
+        <button onClick={onClose} className="mt-5 w-full rounded-xl bg-stone-100 py-3 font-semibold dark:bg-stone-800">Cerrar</button>
+      </div>
     </div>
   );
 }
@@ -132,14 +186,8 @@ export default function ProductDetail({ p }: { p: Product }) {
     setTimeout(() => setToast(""), 1800);
   };
 
-  const share = async () => {
-    const url = window.location.href;
-    try {
-      if (navigator.share) return await navigator.share({ title: p.name, url });
-      await navigator.clipboard.writeText(url);
-      flash("Link copiado ✓");
-    } catch {}
-  };
+  const [sharing, setSharing] = useState(false);
+  const share = () => setSharing(true);
 
   const askSize = () => {
     setWarn(true);
@@ -297,6 +345,8 @@ export default function ProductDetail({ p }: { p: Product }) {
           {cta}
         </div>
       </div>
+
+      {sharing && <ShareSheet name={p.name} onClose={() => setSharing(false)} onCopied={() => flash("Link copiado ✓")} />}
 
       {toast && (
         <div className="fixed left-1/2 top-16 z-30 -translate-x-1/2 rounded-full bg-stone-900 px-4 py-2 text-sm text-white shadow-lg dark:bg-white dark:text-stone-900">
