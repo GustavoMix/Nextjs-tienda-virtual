@@ -1,3 +1,6 @@
+export type Condition = "Nuevo" | "Como nuevo" | "Buen estado" | "Usado";
+export const CONDITIONS: Condition[] = ["Nuevo", "Como nuevo", "Buen estado", "Usado"];
+
 export type Product = {
   id: string; // también es el link: /producto/<id>  (sin espacios ni tildes)
   name: string;
@@ -6,80 +9,86 @@ export type Product = {
   price: number;
   oldPrice?: number; // precio anterior tachado (opcional, para ofertas)
   description: string;
-  images: string[]; // 1 a 3+ fotos: "/productos/mi-foto.jpg" (carpeta public/productos) o URL completa
-  sizes?: string[]; // tallas o medidas para elegir
-  colors?: string[]; // colores para elegir
-  available?: boolean; // false = "Agotado"
+  images: string[]; // 1 a 3 fotos: "/productos/mi-foto.jpg" (carpeta public/productos) o URL completa
+  condition?: Condition; // estado del producto (segunda mano)
+  measure?: string; // medida fija, ej. "2 plazas · 180×220 cm"
+  stock?: number; // 1 = "Única unidad"
+  sizes?: string[]; // opcional: tallas para elegir (productos nuevos con varias tallas)
+  colors?: string[]; // opcional: colores para elegir
+  available?: boolean; // false = "Vendido"
 };
 
-// 👇 Productos de DEMOSTRACIÓN con fotos de Unsplash. Reemplázalos por los tuyos.
-const u = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?w=900&h=900&fit=crop&q=75&auto=format`;
+// 👇 Productos de DEMOSTRACIÓN (dibujos de ejemplo en public/productos). Reemplázalos por los tuyos.
+const img = (n: string) => [1, 2, 3].map((i) => `/productos/manta-${n}-${i}.svg`);
 
 const PRODUCTS: Product[] = [
   {
-    id: "zapatillas-deportivas",
-    name: "Zapatillas deportivas",
-    brand: "Nike",
-    category: "Calzado",
-    price: 350,
-    oldPrice: 420,
-    description: "Cómodas y livianas, ideales para el día a día o para entrenar. Suela con buena amortiguación.",
-    images: [u("1542291026-7eec264c27ff"), u("1460353581641-37baddab0fa2"), u("1606107557195-0e29a4b5b4aa")],
-    sizes: ["37", "38", "39", "40", "41", "42", "43"],
-    colors: ["Rojo", "Negro", "Blanco"],
-  },
-  {
-    id: "reloj-clasico",
-    name: "Reloj clásico",
-    brand: "Casio",
-    category: "Accesorios",
-    price: 280,
-    description: "Diseño elegante con correa de cuero. Perfecto para uso diario o para regalo.",
-    images: [u("1523275335684-37898b6baf30"), u("1524592094714-0f0654e20314"), u("1522312346375-d1a52e2b99b3")],
-    colors: ["Café", "Negro"],
-  },
-  {
-    id: "audifonos-inalambricos",
-    name: "Audífonos inalámbricos",
-    brand: "Sony",
-    category: "Tecnología",
-    price: 220,
-    description: "Bluetooth, buena batería y sonido potente con bajos marcados. Incluye cable de carga.",
-    images: [u("1505740420928-5e560c06d30e"), u("1583394838336-acd977736f90"), u("1484704849700-f032a568e944")],
-    colors: ["Negro", "Blanco"],
-  },
-  {
-    id: "lentes-de-sol",
-    name: "Lentes de sol",
-    brand: "Ray-Ban",
-    category: "Accesorios",
+    id: "manta-galaxia",
+    name: "Manta Galaxia",
+    category: "Infantil",
     price: 120,
-    oldPrice: 150,
-    description: "Protección UV400 y marco resistente. Incluye estuche y paño de limpieza.",
-    images: [u("1572635196237-14b3f281503f"), u("1511499767150-a48a237f0083"), u("1577803645773-f96470509666")],
-    colors: ["Negro", "Carey"],
+    oldPrice: 220,
+    condition: "Como nuevo",
+    measure: "1½ plazas · 150×200 cm",
+    stock: 1,
+    description: "Polar suave con estrellas y planetas. Usada pocas veces, sin manchas ni bolitas.",
+    images: img("galaxia"),
   },
   {
-    id: "mochila-urbana",
-    name: "Mochila urbana",
-    brand: "Totto",
-    category: "Accesorios",
-    price: 180,
-    description: "Espaciosa, con compartimento acolchado para laptop y bolsillos laterales.",
-    images: [u("1553062407-98eeb64c6a62"), u("1622560480605-d83c853bc5c3"), u("1581605405669-fcdf81165afa")],
-    sizes: ["20 L", "30 L"],
-    colors: ["Negro", "Gris"],
+    id: "manta-navidena",
+    name: "Manta Navideña",
+    category: "Navidad",
+    price: 90,
+    condition: "Buen estado",
+    measure: "2 plazas · 180×220 cm",
+    stock: 1,
+    description: "Ideal para diciembre. Tela gruesa y abrigadora, lavada y lista para usar.",
+    images: img("navidad"),
   },
   {
-    id: "camara-instantanea",
-    name: "Cámara instantánea",
-    brand: "Fujifilm",
-    category: "Tecnología",
-    price: 650,
-    description: "Fotos al momento para tus mejores recuerdos. Fácil de usar, ideal para regalo.",
-    images: [u("1526170375885-4d8ecf77b99f"), u("1502920917128-1aa500764cbd"), u("1510127034890-ba27508e9f1c")],
-    colors: ["Celeste", "Rosado", "Blanco"],
+    id: "manta-gamer",
+    name: "Manta Gamer",
+    category: "Juvenil",
+    price: 110,
+    oldPrice: 180,
+    condition: "Como nuevo",
+    measure: "1½ plazas · 150×200 cm",
+    stock: 1,
+    description: "Con controles de videojuego. Perfecta para el cuarto o para jugar en el sofá.",
+    images: img("gamer"),
+  },
+  {
+    id: "manta-gatitos",
+    name: "Manta Gatitos",
+    category: "Infantil",
+    price: 80,
+    condition: "Buen estado",
+    measure: "1 plaza · 130×160 cm",
+    stock: 1,
+    description: "Colores pastel con gatitos. Muy suave, ideal para niños.",
+    images: img("gatitos"),
+  },
+  {
+    id: "manta-futbolera",
+    name: "Manta Futbolera",
+    category: "Juvenil",
+    price: 95,
+    condition: "Usado",
+    measure: "1½ plazas · 150×200 cm",
+    stock: 1,
+    description: "Para los amantes del fútbol. Tiene uso, pero sin roturas. Precio de oportunidad.",
+    images: img("futbol"),
+  },
+  {
+    id: "manta-escocesa",
+    name: "Manta Escocesa",
+    category: "Clásica",
+    price: 150,
+    condition: "Nuevo",
+    measure: "2 plazas · 180×220 cm",
+    stock: 1,
+    description: "Cuadros rojo y negro, estilo cabaña. Nueva, nunca usada, con etiqueta.",
+    images: img("escocesa"),
   },
 ];
 

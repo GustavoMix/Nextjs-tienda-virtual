@@ -112,7 +112,7 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
           {[
             ["Productos", products.length],
             ["Disponibles", availableCount],
-            ["Agotados", products.length - availableCount],
+            ["Vendidos", products.length - availableCount],
           ].map(([label, n]) => (
             <div key={label} className="rounded-2xl bg-white p-3 ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
               <p className="text-2xl font-extrabold tabular-nums">{n}</p>
@@ -136,14 +136,17 @@ export default function AdminApp({ initialProducts }: { initialProducts: Product
                 <Photo url={p.images[0]} alt={p.name} className="h-14 w-14 shrink-0 rounded-xl" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{p.name}</p>
-                  <p className="text-sm text-stone-500 tabular-nums dark:text-stone-400">{money(p.price)}</p>
+                  <p className="text-sm text-stone-500 tabular-nums dark:text-stone-400">
+                    {money(p.price)}
+                    {p.condition && ` · ${p.condition}`}
+                  </p>
                   <button
                     onClick={() => toggle(p.id)}
                     className={`mt-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
                       on ? "bg-[#25D366]/15 text-emerald-600 dark:text-[#25D366]" : "bg-stone-200 text-stone-500 dark:bg-stone-800"
                     }`}
                   >
-                    {on ? "● Disponible" : "○ Agotado"}
+                    {on ? "● Disponible" : "○ Vendido"}
                   </button>
                 </div>
                 {confirmId === p.id ? (

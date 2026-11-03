@@ -77,7 +77,7 @@ export default function Store({ products }: { products: Product[] }) {
               </button>
             ))}
           <span className="ml-auto hidden shrink-0 pl-2 text-xs font-semibold sm:inline text-stone-500 dark:text-stone-400">
-            <span className="text-[#25D366]">●</span> {shown.length} disponibles
+            <span className="text-[#25D366]">●</span> {shown.length} {shown.length === 1 ? "producto" : "productos"}
           </span>
         </div>
 
@@ -101,12 +101,18 @@ export default function Store({ products }: { products: Product[] }) {
                     alt={p.name}
                     className={`aspect-[4/5] w-full transition duration-300 group-hover:scale-[1.03] ${soldOut ? "opacity-50 grayscale" : ""}`}
                   />
-                  {soldOut && (
-                    <span className="absolute left-2 top-2 rounded-full bg-stone-950/80 px-2 py-0.5 text-[11px] font-bold text-white">Agotado</span>
-                  )}
-                  {off > 0 && (
-                    <span className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">-{off}%</span>
-                  )}
+                  <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+                    {soldOut ? (
+                      <span className="rounded-full bg-stone-950/85 px-2 py-0.5 text-[11px] font-bold text-white">Vendido</span>
+                    ) : (
+                      <>
+                        {off > 0 && <span className="rounded-md bg-red-500 px-1.5 py-0.5 text-[11px] font-bold text-white">-{off}%</span>}
+                        {p.condition && (
+                          <span className="rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-stone-800">{p.condition}</span>
+                        )}
+                      </>
+                    )}
+                  </div>
                   {p.images.length > 1 && (
                     <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
                       📷 {p.images.length}
@@ -119,6 +125,9 @@ export default function Store({ products }: { products: Product[] }) {
                       {p.brand && <span className="text-stone-500 dark:text-stone-400">{p.brand} · </span>}
                       {p.name}
                     </h2>
+                    {p.measure && (
+                      <p className="mt-0.5 truncate text-[12px] text-stone-500 dark:text-stone-400">{p.measure.split("·")[0].trim()}</p>
+                    )}
                   </Link>
                   <div className="mt-auto flex items-end justify-between gap-1.5 pt-1.5">
                     <div className="min-w-0 leading-tight">
@@ -137,7 +146,7 @@ export default function Store({ products }: { products: Product[] }) {
                           : "bg-[#25D366] text-stone-950 hover:brightness-95"
                       }`}
                     >
-                      <WaIcon className="h-4 w-4" /> Pedir
+                      {soldOut ? "Vendido" : <><WaIcon className="h-4 w-4" /> Pedir</>}
                     </a>
                   </div>
                 </div>

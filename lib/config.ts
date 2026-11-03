@@ -1,6 +1,6 @@
 // Configuración de la tienda. Cambia estos valores a los tuyos.
 export const STORE_NAME = "Mi Tienda";
-export const STORE_TAGLINE = "Pide directo por WhatsApp";
+export const STORE_TAGLINE = "Mantas temáticas de segunda · Pide por WhatsApp";
 
 // Número con código de país (Bolivia = 591), solo dígitos.
 export const WHATSAPP_NUMBER =
@@ -16,7 +16,7 @@ export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export const STORE_INFO = [
   { icon: "🚚", title: "Entregas", short: "Envíos a todo Bolivia" },
   { icon: "💵", title: "Pago", short: "Efectivo o QR" },
-  { icon: "✅", title: "Garantía", short: "Producto nuevo" },
+  { icon: "🧼", title: "Limpieza", short: "Lavadas y revisadas" },
 ];
 
 // Dirección pública de la tienda (se usa para poner el link del producto en el mensaje de WhatsApp)

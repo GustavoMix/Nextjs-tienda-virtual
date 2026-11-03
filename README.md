@@ -10,22 +10,22 @@ npm run dev                  # http://localhost:3000
 ```
 
 ## Subir tus productos
-Ahora hay 6 productos de demostración con fotos de Unsplash.
+Ahora hay 6 mantas de demostración con dibujos de ejemplo (`public/productos/manta-*.svg`).
 1. Guarda las fotos (las de Facebook) en `public/productos/`.
 2. Edita `lib/products.ts`. Cada producto tiene su propia página en `/producto/<id>`:
 ```ts
 {
-  id: "zapatillas-nike-rojas",           // el link (sin espacios ni tildes)
-  name: "Zapatillas Nike rojas",
-  brand: "Nike",
-  category: "Calzado",
-  price: 350,
-  oldPrice: 420,                          // opcional: muestra oferta -17%
+  id: "manta-stitch",                     // el link (sin espacios ni tildes)
+  name: "Manta Stitch",
+  category: "Infantil",
+  price: 100,
+  oldPrice: 180,                          // opcional: precio anterior tachado
+  condition: "Como nuevo",                // Nuevo | Como nuevo | Buen estado | Usado
+  measure: "1½ plazas · 150×200 cm",
+  stock: 1,                               // 1 = muestra "Única unidad"
   description: "Texto corto del producto.",
-  images: ["/productos/nike-1.jpg", "/productos/nike-2.jpg", "/productos/nike-3.jpg"],
-  sizes: ["38", "39", "40"],              // opcional: el cliente debe elegir una
-  colors: ["Rojo", "Negro"],              // opcional
-  available: true,                        // false = Agotado
+  images: ["/productos/stitch-1.jpg", "/productos/stitch-2.jpg", "/productos/stitch-3.jpg"],
+  available: true,                        // false = "Vendido"
 }
 ```
 3. Nombre, número de WhatsApp, moneda y datos de entrega/pago: `lib/config.ts`.

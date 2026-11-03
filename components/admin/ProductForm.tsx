@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "@/lib/products";
+import { CONDITIONS, type Condition, type Product } from "@/lib/products";
 import { src } from "../ui";
 
 const field =
@@ -9,7 +9,6 @@ const field =
 
 const slug = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const list = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
 export default function ProductForm({
   product,
@@ -25,8 +24,8 @@ export default function ProductForm({
   const [category, setCategory] = useState(product?.category ?? "");
   const [price, setPrice] = useState(product ? String(product.price) : "");
   const [description, setDescription] = useState(product?.description ?? "");
-  const [sizes, setSizes] = useState(product?.sizes?.join(", ") ?? "");
-  const [colors, setColors] = useState(product?.colors?.join(", ") ?? "");
+  const [condition, setCondition] = useState<Condition>(product?.condition ?? "Como nuevo");
+  const [measure, setMeasure] = useState(product?.measure ?? "");
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [available, setAvailable] = useState(product?.available !== false);
   const [error, setError] = useState("");
@@ -42,6 +41,7 @@ export default function ProductForm({
     e.preventDefault();
     if (!name.trim() || !price) return setError("Pon al menos el nombre y el precio.");
     onSave({
+      ...product,
       id: product?.id ?? (slug(name) || String(Date.now())),
       name: name.trim(),
       brand: brand.trim() || undefined,
@@ -49,8 +49,9 @@ export default function ProductForm({
       price: Number(price),
       description: description.trim(),
       images,
-      sizes: list(sizes).length ? list(sizes) : undefined,
-      colors: list(colors).length ? list(colors) : undefined,
+      condition,
+      measure: measure.trim() || undefined,
+      stock: product?.stock ?? 1,
       available,
     });
   };
@@ -98,13 +99,29 @@ export default function ProductForm({
           <input id="price" type="number" inputMode="numeric" min="0" placeholder="Precio Bs *" value={price} onChange={(e) => setPrice(e.target.value)} className={field} />
           <input id="brand" placeholder="Marca" value={brand} onChange={(e) => setBrand(e.target.value)} className={field} />
         </div>
-        <input id="category" placeholder="Categoría (ej. Calzado)" value={category} onChange={(e) => setCategory(e.target.value)} className={field} />
+        <input id="category" placeholder="Categoría (ej. Infantil, Navidad)" value={category} onChange={(e) => setCategory(e.target.value)} className={field} />
         <textarea id="description" rows={3} placeholder="Descripción corta" value={description} onChange={(e) => setDescription(e.target.value)} className={field} />
-        <input id="sizes" placeholder="Tallas, separadas por coma (ej. 38, 39, 40)" value={sizes} onChange={(e) => setSizes(e.target.value)} className={field} />
-        <input id="colors" placeholder="Colores, separados por coma" value={colors} onChange={(e) => setColors(e.target.value)} className={field} />
+        <div>
+          <p className="mb-1.5 text-sm font-semibold">Estado</p>
+          <div className="grid grid-cols-2 gap-2">
+            {CONDITIONS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCondition(c)}
+                className={`rounded-xl py-2.5 text-sm font-semibold ring-1 ${
+                  condition === c ? "bg-[#25D366] text-stone-950 ring-[#25D366]" : "ring-stone-200 dark:ring-stone-700"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+        <input id="measure" placeholder="Medida (ej. 2 plazas · 180×220 cm)" value={measure} onChange={(e) => setMeasure(e.target.value)} className={field} />
 
         <label className="flex items-center justify-between rounded-xl bg-stone-100 px-3.5 py-3 dark:bg-stone-800">
-          <span className="font-semibold">Disponible</span>
+          <span className="font-semibold">Disponible (desmarca cuando se venda)</span>
           <input id="available" type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-5 w-5 accent-[#25D366]" />
         </label>
 

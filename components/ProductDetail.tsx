@@ -146,7 +146,7 @@ export default function ProductDetail({ p }: { p: Product }) {
 
   const cta = soldOut ? (
     <span className="flex flex-1 items-center justify-center rounded-2xl bg-stone-200 py-3.5 font-bold text-stone-500 dark:bg-stone-800">
-      Agotado por ahora
+      Ya se vendió
     </span>
   ) : needsSize ? (
     <button onClick={askSize} className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-3.5 font-bold text-stone-950 opacity-90">
@@ -201,7 +201,7 @@ export default function ProductDetail({ p }: { p: Product }) {
                   soldOut ? "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300" : "bg-[#25D366]/15 text-emerald-600 dark:text-[#25D366]"
                 }`}
               >
-                {soldOut ? "Agotado" : "● Disponible"}
+                {soldOut ? "Vendido" : "● Disponible"}
               </span>
             </div>
             <h1 className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{p.name}</h1>
@@ -215,6 +215,27 @@ export default function ProductDetail({ p }: { p: Product }) {
               )}
             </div>
           </div>
+
+          {p.stock === 1 && !soldOut && (
+            <p className="-mt-2 text-sm font-semibold text-amber-600 dark:text-amber-400">⚡ Única unidad</p>
+          )}
+
+          {(p.condition || p.measure) && (
+            <div className="grid grid-cols-2 gap-2">
+              {p.condition && (
+                <div className="rounded-2xl bg-white px-3.5 py-2.5 ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400">Estado</p>
+                  <p className="font-semibold">{p.condition}</p>
+                </div>
+              )}
+              {p.measure && (
+                <div className="rounded-2xl bg-white px-3.5 py-2.5 ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400">Medida</p>
+                  <p className="font-semibold leading-snug">{p.measure}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {!!p.sizes?.length && (
             <div ref={sizesRef}>
