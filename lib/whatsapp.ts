@@ -11,10 +11,25 @@ export const money = (n: number) =>
 const wa = (text: string) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 
-// Enlace para pedir un producto concreto
-export const productWhatsAppUrl = (p: Product, qty = 1) =>
+type Choice = { qty?: number; size?: string; color?: string; link?: string };
+
+// Enlace para pedir un producto concreto (con talla, color y cantidad si se eligieron)
+export const productWhatsAppUrl = (p: Product, { qty = 1, size, color, link }: Choice = {}) =>
   wa(
-    `¡Hola! 👋 Me interesa este producto:\n\n🛍️ ${p.name}\nCantidad: ${qty}\nPrecio: ${money(p.price * qty)}\n\n¿Está disponible?`
+    [
+      "¡Hola! 👋 Me interesa este producto:",
+      "",
+      `🛍️ ${p.name}${p.brand ? ` (${p.brand})` : ""}`,
+      size && `Talla/medida: ${size}`,
+      color && `Color: ${color}`,
+      `Cantidad: ${qty}`,
+      `Precio: ${money(p.price * qty)}`,
+      link && `Link: ${link}`,
+      "",
+      "¿Está disponible?",
+    ]
+      .filter((l) => typeof l === "string")
+      .join("\n")
   );
 
 // Enlace de contacto general

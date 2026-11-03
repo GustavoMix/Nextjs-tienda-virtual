@@ -1,29 +1,101 @@
 export type Product = {
-  id: string;
+  id: string; // también es el link: /producto/<id>  (sin espacios ni tildes)
   name: string;
-  description: string;
-  price: number;
-  image?: string; // "/productos/mi-foto.jpg" (carpeta public/productos) o una URL completa
+  brand?: string;
   category?: string;
-  available?: boolean; // false = se muestra como "Agotado"
+  price: number;
+  oldPrice?: number; // precio anterior tachado (opcional, para ofertas)
+  description: string;
+  images: string[]; // 1 a 3+ fotos: "/productos/mi-foto.jpg" (carpeta public/productos) o URL completa
+  sizes?: string[]; // tallas o medidas para elegir
+  colors?: string[]; // colores para elegir
+  details?: Record<string, string>; // ficha técnica: { "Material": "Cuero", ... }
+  available?: boolean; // false = "Agotado"
 };
 
 // 👇 Productos de DEMOSTRACIÓN con fotos de Unsplash. Reemplázalos por los tuyos.
-// Pon tus fotos en /public/productos y usa image: "/productos/mi-foto.jpg"
 const u = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?w=700&h=700&fit=crop&q=75&auto=format`;
+  `https://images.unsplash.com/photo-${id}?w=900&h=900&fit=crop&q=75&auto=format`;
 
 const PRODUCTS: Product[] = [
-  { id: "1", name: "Zapatillas deportivas", description: "Cómodas y livianas, ideales para el día a día o para entrenar. Consulta tallas disponibles.", price: 350, category: "Calzado", image: u("1542291026-7eec264c27ff") },
-  { id: "2", name: "Reloj clásico", description: "Diseño elegante con correa de cuero. Perfecto para regalo.", price: 280, category: "Accesorios", image: u("1523275335684-37898b6baf30") },
-  { id: "3", name: "Audífonos inalámbricos", description: "Bluetooth, buena batería y sonido potente. Incluye cable de carga.", price: 220, category: "Tecnología", image: u("1505740420928-5e560c06d30e") },
-  { id: "4", name: "Lentes de sol", description: "Protección UV400, marco resistente. Incluye estuche.", price: 120, category: "Accesorios", image: u("1572635196237-14b3f281503f") },
-  { id: "5", name: "Mochila urbana", description: "Espaciosa, con compartimento para laptop y bolsillos laterales.", price: 180, category: "Accesorios", image: u("1553062407-98eeb64c6a62") },
-  { id: "6", name: "Cámara instantánea", description: "Fotos al momento para tus mejores recuerdos. Consulta disponibilidad de rollos.", price: 650, category: "Tecnología", image: u("1526170375885-4d8ecf77b99f") },
+  {
+    id: "zapatillas-deportivas",
+    name: "Zapatillas deportivas",
+    brand: "Nike",
+    category: "Calzado",
+    price: 350,
+    oldPrice: 420,
+    description: "Cómodas y livianas, ideales para el día a día o para entrenar. Suela con buena amortiguación.",
+    images: [u("1542291026-7eec264c27ff"), u("1460353581641-37baddab0fa2"), u("1606107557195-0e29a4b5b4aa")],
+    sizes: ["37", "38", "39", "40", "41", "42", "43"],
+    colors: ["Rojo", "Negro", "Blanco"],
+    details: { Material: "Malla transpirable", Suela: "Goma antideslizante", Uso: "Deporte / casual", Estado: "Nuevo, en caja" },
+  },
+  {
+    id: "reloj-clasico",
+    name: "Reloj clásico",
+    brand: "Casio",
+    category: "Accesorios",
+    price: 280,
+    description: "Diseño elegante con correa de cuero. Perfecto para uso diario o para regalo.",
+    images: [u("1523275335684-37898b6baf30"), u("1524592094714-0f0654e20314"), u("1522312346375-d1a52e2b99b3")],
+    colors: ["Café", "Negro"],
+    details: { Correa: "Cuero sintético", Esfera: "40 mm", Resistencia: "Al agua (salpicaduras)", Garantía: "3 meses" },
+  },
+  {
+    id: "audifonos-inalambricos",
+    name: "Audífonos inalámbricos",
+    brand: "Sony",
+    category: "Tecnología",
+    price: 220,
+    description: "Bluetooth, buena batería y sonido potente con bajos marcados. Incluye cable de carga.",
+    images: [u("1505740420928-5e560c06d30e"), u("1583394838336-acd977736f90"), u("1484704849700-f032a568e944")],
+    colors: ["Negro", "Blanco"],
+    details: { Conexión: "Bluetooth 5.0", Batería: "Hasta 20 horas", Micrófono: "Sí, para llamadas", Incluye: "Cable USB-C" },
+  },
+  {
+    id: "lentes-de-sol",
+    name: "Lentes de sol",
+    brand: "Ray-Ban",
+    category: "Accesorios",
+    price: 120,
+    oldPrice: 150,
+    description: "Protección UV400 y marco resistente. Incluye estuche y paño de limpieza.",
+    images: [u("1572635196237-14b3f281503f"), u("1511499767150-a48a237f0083"), u("1577803645773-f96470509666")],
+    colors: ["Negro", "Carey"],
+    details: { Protección: "UV400", Marco: "Acetato", Lente: "Polarizado", Incluye: "Estuche + paño" },
+  },
+  {
+    id: "mochila-urbana",
+    name: "Mochila urbana",
+    brand: "Totto",
+    category: "Accesorios",
+    price: 180,
+    description: "Espaciosa, con compartimento acolchado para laptop y bolsillos laterales.",
+    images: [u("1553062407-98eeb64c6a62"), u("1622560480605-d83c853bc5c3"), u("1581605405669-fcdf81165afa")],
+    sizes: ["20 L", "30 L"],
+    colors: ["Negro", "Gris"],
+    details: { Material: "Poliéster resistente al agua", Laptop: "Hasta 15.6\"", Bolsillos: "5", Garantía: "6 meses" },
+  },
+  {
+    id: "camara-instantanea",
+    name: "Cámara instantánea",
+    brand: "Fujifilm",
+    category: "Tecnología",
+    price: 650,
+    description: "Fotos al momento para tus mejores recuerdos. Fácil de usar, ideal para regalo.",
+    images: [u("1526170375885-4d8ecf77b99f"), u("1502920917128-1aa500764cbd"), u("1510127034890-ba27508e9f1c")],
+    colors: ["Celeste", "Rosado", "Blanco"],
+    details: { Formato: "Instax Mini", Flash: "Automático", Pilas: "2 x AA (incluidas)", Incluye: "Correa" },
+  },
 ];
 
 // Toda la tienda lee los productos desde aquí.
-// Cuando metas Supabase solo cambias el cuerpo de esta función (ver README).
+// Cuando metas Supabase solo cambias el cuerpo de estas funciones (ver README).
 export async function getProducts(): Promise<Product[]> {
   return PRODUCTS;
+}
+
+export async function getProduct(id: string): Promise<Product | undefined> {
+  return PRODUCTS.find((p) => p.id === id);
 }
