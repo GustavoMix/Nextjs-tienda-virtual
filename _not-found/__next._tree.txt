@@ -1,0 +1,4 @@
+:HL["/Nextjs-tienda-virtual/_next/static/chunks/230-f6d3k-u76.css","style"]
+2:[["children",{"s":"__PAGE__","h":160}]]
+1:[["children",{"s":"/_not-found","h":96,"c":"$Q2"}]]
+0:{"b":"7kCuP6-5PtBW20pQKOibY","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
