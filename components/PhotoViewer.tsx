@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Spin360 from "./Spin360";
 import { src } from "./ui";
 
-type Props = { images: string[]; start: number; alt: string; onClose: () => void };
+type Mode = "360" | "3d" | "zoom";
+type Props = { images: string[]; frames?: string[]; start: number; startMode?: Mode; alt: string; onClose: () => void };
 
 // iPhone pide permiso para usar el giroscopio; debe llamarse dentro de un toque del usuario.
 export async function askGyroPermission() {
@@ -22,9 +24,9 @@ const THICK = 18; // grosor del "objeto" 3D en px
 // - También se mueve al inclinar el celular (giroscopio)
 // - Si no lo tocas, gira solo despacio
 // - Botón 🔍 para ver la foto plana y acercar detalles
-export default function PhotoViewer({ images, start, alt, onClose }: Props) {
+export default function PhotoViewer({ images, frames, start, startMode = "3d", alt, onClose }: Props) {
   const [i, setI] = useState(start);
-  const [mode, setMode] = useState<"3d" | "zoom">("3d");
+  const [mode, setMode] = useState<Mode>(startMode === "360" && frames ? "360" : startMode);
   const [size, setSize] = useState(320);
   const [hint, setHint] = useState(true);
 
@@ -199,19 +201,24 @@ export default function PhotoViewer({ images, start, alt, onClose }: Props) {
       {/* Barra superior */}
       <div className="relative z-10 flex items-center justify-between p-3 text-white">
         <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold tabular-nums">
-          {i + 1} / {images.length}
+          {mode === "360" ? "Vista 360°" : `${i + 1} / ${images.length}`}
         </span>
         <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setMode((m) => (m === "3d" ? "zoom" : "3d"));
-              setZoom(1);
-              setPan({ x: 0, y: 0 });
-            }}
-            className={`${btn} text-sm font-bold`}
-          >
-            {mode === "3d" ? "🔍 Zoom" : "🧊 3D"}
-          </button>
+          <div className="flex rounded-full bg-white/15 p-1 backdrop-blur">
+            {([...(frames ? (["360"] as const) : []), "3d", "zoom"] as Mode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => {
+                  setMode(m);
+                  setZoom(1);
+                  setPan({ x: 0, y: 0 });
+                }}
+                className={`h-9 rounded-full px-3.5 text-sm font-bold text-white transition ${mode === m ? "bg-[#25D366] !text-stone-950" : ""}`}
+              >
+                {m === "360" ? "360°" : m === "3d" ? "3D" : "🔍"}
+              </button>
+            ))}
+          </div>
           <button onClick={onClose} aria-label="Cerrar" className={`${btn} text-2xl`}>
             ×
           </button>
@@ -220,7 +227,11 @@ export default function PhotoViewer({ images, start, alt, onClose }: Props) {
 
       {/* Escena */}
       <div className="relative flex-1">
-        {mode === "3d" ? (
+        {mode === "360" && frames ? (
+          <div className="absolute inset-0 grid place-items-center">
+            <Spin360 frames={frames} alt={alt} fullscreen className="aspect-square w-[min(calc(100vw-24px),calc(100dvh-190px))] rounded-2xl" />
+          </div>
+        ) : mode === "3d" ? (
           <div
             ref={stage}
             className="absolute inset-0 grid cursor-grab touch-none select-none place-items-center active:cursor-grabbing"
@@ -275,7 +286,7 @@ export default function PhotoViewer({ images, start, alt, onClose }: Props) {
           </div>
         )}
 
-        {images.length > 1 && (
+        {images.length > 1 && mode !== "360" && (
           <>
             <button onClick={() => go(-1)} aria-label="Foto anterior" className={`${btn} absolute left-3 top-1/2 z-10 -translate-y-1/2 text-2xl`}>
               ‹
@@ -286,7 +297,7 @@ export default function PhotoViewer({ images, start, alt, onClose }: Props) {
           </>
         )}
 
-        {hint && mode === "3d" && (
+        {hint && mode === "3d" && !frames && (
           <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
             <span className="animate-pulse rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur">👆 Gira con el dedo</span>
           </div>
@@ -300,11 +311,12 @@ export default function PhotoViewer({ images, start, alt, onClose }: Props) {
             key={u}
             onClick={() => {
               setI(n);
+              if (mode === "360") setMode("3d");
               setZoom(1);
               setPan({ x: 0, y: 0 });
             }}
             aria-label={`Ver foto ${n + 1}`}
-            className={`h-12 w-12 overflow-hidden rounded-lg ring-2 transition ${n === i ? "ring-[#25D366]" : "opacity-50 ring-transparent"}`}
+            className={`h-12 w-12 overflow-hidden rounded-lg ring-2 transition ${n === i && mode !== "360" ? "ring-[#25D366]" : "opacity-50 ring-transparent"}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={src(u)} alt="" className="h-full w-full object-cover" />

@@ -25,6 +25,7 @@ Ahora hay 6 mantas de demostración con dibujos de ejemplo (`public/productos/ma
   stock: 1,                               // 1 = muestra "Única unidad"
   description: "Texto corto del producto.",
   images: ["/productos/stitch-1.jpg", "/productos/stitch-2.jpg", "/productos/stitch-3.jpg"],
+  images360: ["/productos/360/stitch-01.jpg", /* … */ "/productos/360/stitch-24.jpg"], // opcional
   status: "disponible",                   // "disponible" | "reservado" | "vendido"
 }
 ```
@@ -59,3 +60,13 @@ El workflow `.github/workflows/pages.yml` publica solo en cada push.
   2. **Guardar productos:** en `components/admin/AdminApp.tsx`, `save`, `toggle` y `remove` deben hacer `insert/update/delete` en la tabla `products`.
   3. **Fotos:** en `components/admin/ProductForm.tsx`, sube los archivos a Supabase Storage y guarda la URL pública en `images`.
   4. **Seguridad:** activa RLS en `products`: lectura pública y escritura solo para el admin.
+
+## Vista 360° (opcional)
+Para que un producto gire en 360°:
+1. Pon el producto sobre una silla giratoria o una mesa y deja el celular **fijo** (apoyado o con trípode).
+2. Toma una foto, gira el producto un poquito y toma otra. **24 fotos** (cada ~15°) se ve muy fluido; 12 ya funciona.
+3. Misma luz y mismo fondo en todas. Nombra las fotos en orden: `stitch-01.jpg`, `stitch-02.jpg`…
+4. Ponlas en `public/productos/360/` y agrégalas en `images360` en el orden en que las tomaste.
+
+La tienda pasa de una foto a otra con un fundido suave al deslizar el dedo, gira sola y responde al giroscopio.
+Los dibujos de demostración se generan con `python3 scripts/gen360.py public/productos/360 galaxia gamer`.

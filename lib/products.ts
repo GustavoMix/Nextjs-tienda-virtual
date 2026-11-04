@@ -18,6 +18,7 @@ export type Product = {
   oldPrice?: number; // precio anterior tachado (opcional, para ofertas)
   description: string;
   images: string[]; // 1 a 3 fotos: "/productos/mi-foto.jpg" (carpeta public/productos) o URL completa
+  images360?: string[]; // opcional: 12 a 36 fotos tomadas girando alrededor del producto, en orden → vista 360°
   condition?: Condition; // estado del producto (segunda mano)
   measure?: string; // medida fija, ej. "2 plazas · 180×220 cm"
   stock?: number; // 1 = "Única unidad"
@@ -28,6 +29,7 @@ export type Product = {
 
 // 👇 Productos de DEMOSTRACIÓN (dibujos de ejemplo en public/productos). Reemplázalos por los tuyos.
 const img = (n: string) => [1, 2, 3].map((i) => `/productos/manta-${n}-${i}.svg`);
+const spin = (n: string) => Array.from({ length: 24 }, (_, i) => `/productos/360/${n}-360-${String(i).padStart(2, "0")}.svg`);
 
 const PRODUCTS: Product[] = [
   {
@@ -41,6 +43,7 @@ const PRODUCTS: Product[] = [
     stock: 1,
     description: "Polar suave con estrellas y planetas. Usada pocas veces, sin manchas ni bolitas.",
     images: img("galaxia"),
+    images360: spin("galaxia"),
   },
   {
     id: "manta-navidena",
@@ -64,6 +67,7 @@ const PRODUCTS: Product[] = [
     stock: 1,
     description: "Con controles de videojuego. Perfecta para el cuarto o para jugar en el sofá.",
     images: img("gamer"),
+    images360: spin("gamer"),
   },
   {
     id: "manta-gatitos",
