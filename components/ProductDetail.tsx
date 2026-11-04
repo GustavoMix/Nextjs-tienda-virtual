@@ -1,70 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { statusOf, type Product } from "@/lib/products";
 import { money, productWhatsAppUrl, reservedWhatsAppUrl, similarWhatsAppUrl } from "@/lib/whatsapp";
 import { SITE_URL, STORE_INFO, STORE_NAME } from "@/lib/config";
 import ThemeToggle from "./ThemeToggle";
-import PhotoViewer, { askGyroPermission } from "./PhotoViewer";
-import Spin360 from "./Spin360";
+import PhotoViewer from "./PhotoViewer";
 import { WaIcon, src } from "./ui";
 
-function Gallery({ images, frames, alt }: { images: string[]; frames?: string[]; alt: string }) {
+function Gallery({ images, alt }: { images: string[]; alt: string }) {
   const [broken, setBroken] = useState<string[]>([]);
   const [i, setI] = useState(0);
-  const [viewer, setViewer] = useState<{ start: number; mode: "360" | "3d" } | null>(null);
+  const [viewer, setViewer] = useState<number | null>(null);
   const track = useRef<HTMLDivElement>(null);
-  const tiltBox = useRef<HTMLDivElement>(null);
-  const has360 = !!frames && frames.length > 1;
-  const k = has360 ? 1 : 0; // la vista 360° va primero
-  const open = (start: number, mode: "360" | "3d") => {
-    askGyroPermission(); // iPhone: pide permiso del giroscopio con este toque
-    setViewer({ start, mode });
-  };
-
-  // 3D siempre: la foto principal se inclina un poco con el giroscopio o el mouse
-  useEffect(() => {
-    const el = tiltBox.current;
-    if (!el) return;
-    const set = (x: number, y: number) => {
-      el.style.transform = `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg)`;
-    };
-    const onTilt = (e: DeviceOrientationEvent) => {
-      if (e.gamma == null || e.beta == null) return;
-      set(Math.max(-8, Math.min(8, -(e.beta - 45) * 0.25)), Math.max(-8, Math.min(8, e.gamma * 0.3)));
-    };
-    const onMouse = (e: MouseEvent) => {
-      const r = el.getBoundingClientRect();
-      set(-((e.clientY - r.top) / r.height - 0.5) * 10, ((e.clientX - r.left) / r.width - 0.5) * 10);
-    };
-    const onLeave = () => set(0, 0);
-    window.addEventListener("deviceorientation", onTilt);
-    el.addEventListener("mousemove", onMouse);
-    el.addEventListener("mouseleave", onLeave);
-    return () => {
-      window.removeEventListener("deviceorientation", onTilt);
-      el.removeEventListener("mousemove", onMouse);
-      el.removeEventListener("mouseleave", onLeave);
-    };
-  }, []);
   const list = images.filter((u) => !broken.includes(u));
-  const total = list.length + k;
 
   const go = (n: number) => {
     const el = track.current;
     if (el) el.scrollTo({ left: n * el.clientWidth, behavior: "smooth" });
   };
 
-  if (total === 0)
+  if (list.length === 0)
     return <div className="grid aspect-square w-full place-items-center bg-stone-200 text-7xl dark:bg-stone-800 sm:rounded-3xl">📦</div>;
 
-  const cur = Math.min(i, total - 1);
-  const on360 = has360 && cur === 0;
+  const cur = Math.min(i, list.length - 1);
 
   return (
     <div>
-      <div ref={tiltBox} className="relative transition-transform duration-300 ease-out will-change-transform">
+      <div className="relative">
         <div
           ref={track}
           onScroll={(e) => {
@@ -73,52 +37,40 @@ function Gallery({ images, frames, alt }: { images: string[]; frames?: string[];
           }}
           className="flex aspect-square w-full snap-x snap-mandatory overflow-x-auto bg-stone-200 [scrollbar-width:none] dark:bg-stone-900 sm:rounded-3xl"
         >
-          {has360 && <Spin360 frames={frames!} alt={alt} className="h-full w-full shrink-0 snap-center" />}
           {list.map((u, n) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={u}
               src={src(u)}
               alt={`${alt} – foto ${n + 1}`}
-              loading={n === 0 && !has360 ? "eager" : "lazy"}
+              loading={n === 0 ? "eager" : "lazy"}
               onError={() => setBroken((b) => [...b, u])}
-              onClick={() => open(n, "3d")}
+              onClick={() => setViewer(n)}
               className="h-full w-full shrink-0 cursor-zoom-in snap-center object-cover"
             />
           ))}
         </div>
         <button
-          onClick={() => (on360 ? open(0, "360") : open(Math.max(0, cur - k), "3d"))}
-          className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-black/75"
+          onClick={() => setViewer(cur)}
+          className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-black/75"
         >
-          {on360 ? "⛶ Pantalla completa" : "🧊 Ver en 3D"}
+          🔍 Ampliar
         </button>
-        {total > 1 && (
-          <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
-            {cur + 1} / {total}
+        {list.length > 1 && (
+          <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+            {cur + 1} / {list.length}
           </span>
         )}
       </div>
-      {total > 1 && (
+      {list.length > 1 && (
         <div className="mt-2.5 flex gap-2 px-3 sm:px-0">
-          {has360 && (
-            <button
-              onClick={() => go(0)}
-              aria-label="Ver 360°"
-              className={`grid h-16 w-16 place-items-center rounded-xl bg-stone-200 text-sm font-extrabold ring-2 transition dark:bg-stone-800 ${
-                cur === 0 ? "ring-[#25D366]" : "opacity-60 ring-transparent hover:opacity-100"
-              }`}
-            >
-              360°
-            </button>
-          )}
           {list.map((u, n) => (
             <button
               key={u}
-              onClick={() => go(n + k)}
+              onClick={() => go(n)}
               aria-label={`Ver foto ${n + 1}`}
               className={`h-16 w-16 overflow-hidden rounded-xl ring-2 transition ${
-                n + k === cur ? "ring-[#25D366]" : "opacity-60 ring-transparent hover:opacity-100"
+                n === cur ? "ring-[#25D366]" : "opacity-60 ring-transparent hover:opacity-100"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -127,16 +79,7 @@ function Gallery({ images, frames, alt }: { images: string[]; frames?: string[];
           ))}
         </div>
       )}
-      {viewer && (
-        <PhotoViewer
-          images={list}
-          frames={has360 ? frames : undefined}
-          start={viewer.start}
-          startMode={viewer.mode}
-          alt={alt}
-          onClose={() => setViewer(null)}
-        />
-      )}
+      {viewer !== null && <PhotoViewer images={list} start={viewer} alt={alt} onClose={() => setViewer(null)} />}
     </div>
   );
 }
@@ -311,7 +254,7 @@ export default function ProductDetail({ p }: { p: Product }) {
       </header>
 
       <main className="mx-auto max-w-6xl sm:grid sm:grid-cols-2 sm:items-start sm:gap-8 sm:px-4 sm:pb-10 sm:pt-6 lg:grid-cols-[3fr_2fr]">
-        <div className="sm:sticky sm:top-20"><div className={soldOut ? "grayscale" : ""}><Gallery images={p.images} frames={p.images360} alt={p.name} /></div></div>
+        <div className="sm:sticky sm:top-20"><div className={soldOut ? "grayscale" : ""}><Gallery images={p.images} alt={p.name} /></div></div>
 
         <div className="space-y-5 px-3 pt-4 sm:px-0 sm:pt-0">
           <div className="space-y-1.5">

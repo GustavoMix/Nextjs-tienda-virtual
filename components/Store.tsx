@@ -161,11 +161,7 @@ export default function Store({ products }: { products: Product[] }) {
                       </>
                     )}
                   </div>
-                  {p.images360?.length ? (
-                    <span className="absolute bottom-2 right-2 rounded-full bg-[#25D366] px-2 py-0.5 text-[11px] font-extrabold text-stone-950">
-                      ↻ 360°
-                    </span>
-                  ) : p.images.length > 1 ? (
+                  {p.images.length > 1 ? (
                     <span className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
                       📷 {p.images.length}
                     </span>
