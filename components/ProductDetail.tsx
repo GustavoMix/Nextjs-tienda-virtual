@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { statusOf, type Product } from "@/lib/products";
 import { money, productWhatsAppUrl, reservedWhatsAppUrl, similarWhatsAppUrl } from "@/lib/whatsapp";
 import { SITE_URL, STORE_INFO, STORE_NAME } from "@/lib/config";
 import ThemeToggle from "./ThemeToggle";
-import PhotoViewer from "./PhotoViewer";
+import PhotoViewer, { askGyroPermission } from "./PhotoViewer";
 import { WaIcon, src } from "./ui";
 
 function Gallery({ images, alt }: { images: string[]; alt: string }) {
@@ -14,6 +14,37 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
   const [i, setI] = useState(0);
   const [viewer, setViewer] = useState<number | null>(null);
   const track = useRef<HTMLDivElement>(null);
+  const tiltBox = useRef<HTMLDivElement>(null);
+  const open = (n: number) => {
+    askGyroPermission(); // iPhone: pide permiso del giroscopio con este toque
+    setViewer(n);
+  };
+
+  // 3D siempre: la foto principal se inclina un poco con el giroscopio o el mouse
+  useEffect(() => {
+    const el = tiltBox.current;
+    if (!el) return;
+    const set = (x: number, y: number) => {
+      el.style.transform = `perspective(1000px) rotateX(${x}deg) rotateY(${y}deg)`;
+    };
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null || e.beta == null) return;
+      set(Math.max(-8, Math.min(8, -(e.beta - 45) * 0.25)), Math.max(-8, Math.min(8, e.gamma * 0.3)));
+    };
+    const onMouse = (e: MouseEvent) => {
+      const r = el.getBoundingClientRect();
+      set(-((e.clientY - r.top) / r.height - 0.5) * 10, ((e.clientX - r.left) / r.width - 0.5) * 10);
+    };
+    const onLeave = () => set(0, 0);
+    window.addEventListener("deviceorientation", onTilt);
+    el.addEventListener("mousemove", onMouse);
+    el.addEventListener("mouseleave", onLeave);
+    return () => {
+      window.removeEventListener("deviceorientation", onTilt);
+      el.removeEventListener("mousemove", onMouse);
+      el.removeEventListener("mouseleave", onLeave);
+    };
+  }, []);
   const list = images.filter((u) => !broken.includes(u));
 
   const go = (n: number) => {
@@ -26,7 +57,7 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
 
   return (
     <div>
-      <div className="relative">
+      <div ref={tiltBox} className="relative transition-transform duration-300 ease-out will-change-transform">
         <div
           ref={track}
           onScroll={(e) => {
@@ -43,16 +74,16 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
               alt={`${alt} – foto ${n + 1}`}
               loading={n === 0 ? "eager" : "lazy"}
               onError={() => setBroken((b) => [...b, u])}
-              onClick={() => setViewer(n)}
+              onClick={() => open(n)}
               className="h-full w-full shrink-0 cursor-zoom-in snap-center object-cover"
             />
           ))}
         </div>
         <button
-          onClick={() => setViewer(Math.min(i, list.length - 1))}
+          onClick={() => open(Math.min(i, list.length - 1))}
           className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition hover:bg-black/75"
         >
-          🔍 Ampliar · 3D
+          🧊 Ver en 3D
         </button>
         {list.length > 1 && (
           <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
